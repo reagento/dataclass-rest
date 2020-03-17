@@ -31,4 +31,6 @@ class RealClient(BaseClient):
         pass
 
 
-print(RealClient().list_todos(user_id=1))
+client = RealClient()
+print(client.list_todos(user_id=1))
+print(client.get_todo(id="1"))

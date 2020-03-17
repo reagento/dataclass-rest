@@ -3,7 +3,7 @@ import string
 from functools import partialmethod, wraps
 from inspect import getcallargs, getfullargspec
 from json import JSONDecodeError
-from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, Any
+from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, Any, cast
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
@@ -20,9 +20,10 @@ class NotFoundError(ApiError):
 
 RT = TypeVar("RT")
 BT = TypeVar("BT")
+F = TypeVar('F', bound=Callable[..., Any])
 
 
-def get(url_format: str, *, body_name: str = "body"):
+def rest(url_format: str, *, method: str, body_name: str):
     def dec(func):
         hints = get_type_hints(func)
         result_class = hints.get("return")
@@ -35,13 +36,34 @@ def get(url_format: str, *, body_name: str = "body"):
         @wraps(func)
         def inner(self, *args, **kwargs):
             params = getcallargs(func, self, *args, **kwargs)
-            params = self.factory.dump(params, args_class)
             url = url_format.format(**params)
-            return self.get(url=url, params=params, body_class=body_class, result_class=result_class)
+            params = self.factory.dump(params, args_class)
+            return self.request(url=url, method=method, body=params.get(body_name),
+                                params=params, body_class=body_class, result_class=result_class)
 
-        return inner
+        return cast(F, inner)
 
     return dec
+
+
+def get(url_format: str):
+    return rest(url_format, method="GET", body_name="")
+
+
+def delete(url_format: str):
+    return rest(url_format, method="DELETE", body_name="")
+
+
+def patch(url_format: str, body_name: str = "body"):
+    return rest(url_format, method="PATCH", body_name=body_name)
+
+
+def put(url_format: str, body_name: str = "body"):
+    return rest(url_format, method="PUT", body_name=body_name)
+
+
+def post(url_format: str, body_name: str = "body"):
+    return rest(url_format, method="POST", body_name=body_name)
 
 
 def create_args_class(func: Callable, skipped: Sequence[str]):
