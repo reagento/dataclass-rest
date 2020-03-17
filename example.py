@@ -1,25 +1,38 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
+from dataclass_factory import Factory, Schema, NameStyle
 from requests import Session
 
 from base import BaseClient
 
 
 @dataclass
-class Joke:
+class Todo:
     id: int
-    type: str
-    setup: str
-    punchline: str
+    user_id: int
+    title: str
+    completed: bool
 
 
 class RealClient(BaseClient):
     def __init__(self):
-        super().__init__("https://official-joke-api.appspot.com/jokes/programming/", Session())
+        super().__init__("https://jsonplaceholder.typicode.com/", Session())
 
-    def random_jokes(self):
-        return self.get(url="random", result_class=List[Joke])
+    def _init_factory(self):
+        return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
+
+    def list_todos(self, userId: Optional[int]):
+        return self.get(url="todos", params=locals(), result_class=List[Todo])
+
+    def get_todo(self, id: int):
+        return self.get(url=f"todos/{id}", result_class=Todo)
+
+    def delete_todo(self, id: int):
+        return self.delete(url=f"todos/{id}")
 
 
-print(RealClient().random_jokes())
+client = RealClient()
+print(client.get_todo(1))
+print(client.delete_todo(1))
+print(client.list_todos(userId=1))

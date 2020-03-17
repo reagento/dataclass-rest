@@ -62,13 +62,15 @@ class BaseClient:
             response = self.session.request(
                 method=method,
                 url=url,
-                params=self._filter_params(params),
+                params=self._filter_params(params, (result_class, body_class)),
                 json=self.factory.dump(body, body_class)
             )
             if not response.ok:
                 return self.handle_error(method, response)
             result = response.json()
-            return self.factory.load(result, result_class)
+            if result_class:
+                return self.factory.load(result, result_class)
+            return result
         except RequestException as error:
             self.__logger.error(
                 "RequestException when connecting with url: `%s`, error: `%s`",
