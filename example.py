@@ -31,8 +31,12 @@ class RealClient(BaseClient):
     def delete_todo(self, id: int):
         return self.delete(url=f"todos/{id}")
 
+    def create_todo(self, todo: Todo):
+        return self.post(url=f"todos", body=todo, body_class=Todo, result_class=Todo)
+
 
 client = RealClient()
 print(client.get_todo(1))
 print(client.delete_todo(1))
+print(client.create_todo(Todo(123456789, 111222333, "By Tishka17", False)))
 print(client.list_todos(userId=1))
