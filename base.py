@@ -37,9 +37,11 @@ def rest(url_format: str, *, method: str, body_name: str):
         def inner(self, *args, **kwargs):
             params = getcallargs(func, self, *args, **kwargs)
             url = url_format.format(**params)
-            params = self.factory.dump(params, args_class)
-            return self.request(url=url, method=method, body=params.get(body_name),
-                                params=params, body_class=body_class, result_class=result_class)
+            body = params.get(body_name)
+            serialized_params = self.factory.dump(params, args_class)
+            return self.request(url=url, method=method,
+                                body=body, params=serialized_params,
+                                body_class=body_class, result_class=result_class)
 
         return cast(F, inner)
 

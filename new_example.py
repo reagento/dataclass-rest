@@ -36,7 +36,7 @@ class RealClient(BaseClient):
 
     @post("todos")
     def create_todo(self, body: Todo) -> Todo:
-        pass
+        """Созадем Todo"""
 
 
 client = RealClient()
