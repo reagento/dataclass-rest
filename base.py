@@ -1,7 +1,7 @@
 import logging
-from functools import partial, partialmethod
+from functools import partialmethod
 from json import JSONDecodeError
-from typing import Dict, Any, Tuple, Callable, Type, Optional, TypeVar
+from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
@@ -43,8 +43,17 @@ class BaseClient:
         if not handler:
             raise ApiError(str(response))
 
+    def _filter_params(self, params: Optional[Dict], skip: Sequence = None):
+        if not params:
+            return params
+        return {
+            k: v
+            for k, v in params.items()
+            if v != self or (skip and v in skip)
+        }
+
     def request(self, *, url: str, method: str,
-                params: Dict = None, body: BT = None,
+                params: Optional[Dict] = None, body: Optional[BT] = None,
                 body_class: Optional[Type[BT]] = None,
                 result_class: Optional[Type[RT]] = None) -> RT:
         url = "%s/%s" % (self.base_url, url)
@@ -53,7 +62,7 @@ class BaseClient:
             response = self.session.request(
                 method=method,
                 url=url,
-                params=params,
+                params=self._filter_params(params),
                 json=self.factory.dump(body, body_class)
             )
             if not response.ok:
