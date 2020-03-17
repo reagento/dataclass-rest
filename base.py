@@ -1,5 +1,5 @@
 import logging
-from functools import partial
+from functools import partial, partialmethod
 from json import JSONDecodeError
 from typing import Dict, Any, Tuple, Callable, Type, Optional, TypeVar
 
@@ -73,13 +73,8 @@ class BaseClient:
             )
             raise ApiError("Cannot decode response") from error
 
-    post = partial(request, method="POST")
-    get = partial(request, method="GET", body=None)
-    delete = partial(request, method="DELETE", body=None)
-    patch = partial(request, method="PATCH")
-    put = partial(request, method="PUT")
-
-
-class RealClient(BaseClient):
-    def get_challenge(self, username):
-        return self.post(url="webservice.php", body={"operataion": "getchallenge", "username": username})
+    post = partialmethod(request, method="POST")
+    get = partialmethod(request, method="GET", body=None)
+    delete = partialmethod(request, method="DELETE", body=None)
+    patch = partialmethod(request, method="PATCH")
+    put = partialmethod(request, method="PUT")
