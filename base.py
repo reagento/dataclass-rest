@@ -1,11 +1,13 @@
 import logging
+import string
 from functools import partialmethod, wraps
 from inspect import getcallargs, getfullargspec
 from json import JSONDecodeError
-from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, TypedDict, Any
+from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, Any
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
+from typing_extensions import TypedDict
 
 
 class ApiError(Exception):
@@ -22,10 +24,13 @@ BT = TypeVar("BT")
 
 def get(url_format: str, *, body_name: str = "body"):
     def dec(func):
-        args_class = create_args_class(func, body_name)
         hints = get_type_hints(func)
         result_class = hints.get("return")
         body_class = hints.get(body_name)
+        parsed_format = string.Formatter().parse(url_format)
+        skipped = [x[1] for x in parsed_format]
+        skipped.append(body_name)
+        args_class = create_args_class(func, skipped)
 
         @wraps(func)
         def inner(self, *args, **kwargs):
@@ -39,7 +44,7 @@ def get(url_format: str, *, body_name: str = "body"):
     return dec
 
 
-def create_args_class(func: Callable, body_name: str):
+def create_args_class(func: Callable, skipped: Sequence[str]):
     s = getfullargspec(func)
     fields = {}
     self_processed = False
@@ -47,7 +52,7 @@ def create_args_class(func: Callable, body_name: str):
         if not self_processed:
             self_processed = True
             continue
-        if x == body_name:
+        if x in skipped:
             continue
         fields[x] = s.annotations.get(x, Any)
     return TypedDict(f"{func.__name__}_Args", fields)
