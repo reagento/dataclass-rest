@@ -1,7 +1,8 @@
 import logging
-from functools import partialmethod
+from functools import partialmethod, wraps
+from inspect import getcallargs, getfullargspec
 from json import JSONDecodeError
-from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence
+from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, TypedDict, Any
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
@@ -17,6 +18,39 @@ class NotFoundError(ApiError):
 
 RT = TypeVar("RT")
 BT = TypeVar("BT")
+
+
+def get(url_format: str, *, body_name: str = "body"):
+    def dec(func):
+        args_class = create_args_class(func, body_name)
+        hints = get_type_hints(func)
+        result_class = hints.get("return")
+        body_class = hints.get(body_name)
+
+        @wraps(func)
+        def inner(self, *args, **kwargs):
+            params = getcallargs(func, self, *args, **kwargs)
+            params = self.factory.dump(params, args_class)
+            url = url_format.format(**params)
+            return self.get(url=url, params=params, body_class=body_class, result_class=result_class)
+
+        return inner
+
+    return dec
+
+
+def create_args_class(func: Callable, body_name: str):
+    s = getfullargspec(func)
+    fields = {}
+    self_processed = False
+    for x in s.args:
+        if not self_processed:
+            self_processed = True
+            continue
+        if x == body_name:
+            continue
+        fields[x] = s.annotations.get(x, Any)
+    return TypedDict(f"{func.__name__}_Args", fields)
 
 
 class BaseClient:
@@ -58,12 +92,14 @@ class BaseClient:
                 result_class: Optional[Type[RT]] = None) -> RT:
         url = "%s/%s" % (self.base_url, url)
         self.__logger.debug("Sending requests to `%s`", url)
+        if body_class:
+            body = self.factory.dump(body, body_class)
         try:
             response = self.session.request(
                 method=method,
                 url=url,
                 params=self._filter_params(params, (result_class, body_class)),
-                json=self.factory.dump(body, body_class)
+                json=body
             )
             if not response.ok:
                 return self.handle_error(method, response)
