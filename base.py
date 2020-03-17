@@ -3,8 +3,8 @@ from functools import partial
 from json import JSONDecodeError
 from typing import Dict, Any, Tuple, Callable, Type, Optional, TypeVar
 
-from requests import RequestException, Session, Response
 from dataclass_factory import Factory
+from requests import RequestException, Session, Response
 
 
 class ApiError(Exception):
@@ -15,7 +15,8 @@ class NotFoundError(ApiError):
     pass
 
 
-T = TypeVar("T")
+RT = TypeVar("RT")
+BT = TypeVar("BT")
 
 
 class BaseClient:
@@ -43,12 +44,18 @@ class BaseClient:
             raise ApiError(str(response))
 
     def request(self, *, url: str, method: str,
-                params: Dict = None, body: Any = None,
-                result_class: Optional[Type[T]] = None) -> T:
+                params: Dict = None, body: BT = None,
+                body_class: Optional[Type[BT]] = None,
+                result_class: Optional[Type[RT]] = None) -> RT:
         url = "%s/%s" % (self.base_url, url)
-        self.__logger.debug("Get from: `%s`", url)
+        self.__logger.debug("Sending requests to `%s`", url)
         try:
-            response = self.session.request(method=method, url=url, params=params, json=self.factory.dump(body))
+            response = self.session.request(
+                method=method,
+                url=url,
+                params=params,
+                json=self.factory.dump(body, body_class)
+            )
             if not response.ok:
                 return self.handle_error(method, response)
             result = response.json()
@@ -75,4 +82,4 @@ class BaseClient:
 
 class RealClient(BaseClient):
     def get_challenge(self, username):
-        return self.post("webservice.php", json={"operataion": "getchallenge", "username": username})
+        return self.post(url="webservice.php", body={"operataion": "getchallenge", "username": username})
