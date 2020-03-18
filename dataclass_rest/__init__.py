@@ -1,4 +1,5 @@
-from .base import BaseClient, get, post, delete, patch, put, ApiError, NotFoundError
+from .base import BaseClient, get, post, delete, patch, put
+from .errors import ApiError, NotFoundError
 
 __all__ = [
     "BaseClient",

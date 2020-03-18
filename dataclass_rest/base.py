@@ -1,31 +1,15 @@
 import logging
 import string
-import sys
 from functools import wraps
-from inspect import getcallargs, getfullargspec
+from inspect import getcallargs
 from json import JSONDecodeError
-from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, Any, cast
+from typing import Dict, Tuple, Callable, Type, Optional, Sequence, get_type_hints, cast
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
 
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict
-
-
-class ApiError(Exception):
-    pass
-
-
-class NotFoundError(ApiError):
-    pass
-
-
-RT = TypeVar("RT")
-BT = TypeVar("BT")
-F = TypeVar('F', bound=Callable[..., Any])
+from .common import create_args_class, BT, RT, F
+from .errors import ApiError, NotFoundError
 
 
 def rest(url_format: str, *, method: str, body_name: str):
@@ -74,20 +58,6 @@ def post(url_format: str, body_name: str = "body"):
     return rest(url_format, method="POST", body_name=body_name)
 
 
-def create_args_class(func: Callable, skipped: Sequence[str]):
-    s = getfullargspec(func)
-    fields = {}
-    self_processed = False
-    for x in s.args:
-        if not self_processed:
-            self_processed = True
-            continue
-        if x in skipped:
-            continue
-        fields[x] = s.annotations.get(x, Any)
-    return TypedDict(f"{func.__name__}_Args", fields)  # type: ignore
-
-
 class BaseClient:
     __logger = logging.getLogger(__name__)
 
@@ -106,7 +76,7 @@ class BaseClient:
     def _init_params_factory(self):
         return
 
-    def _handle_404(self, repsonse: Response):
+    def _handle_404(self, response: Response):
         raise NotFoundError
 
     def handle_error(self, method: str, response: Response):
