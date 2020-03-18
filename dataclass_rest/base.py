@@ -1,13 +1,18 @@
 import logging
 import string
-from functools import partialmethod, wraps
+import sys
+from functools import wraps
 from inspect import getcallargs, getfullargspec
 from json import JSONDecodeError
 from typing import Dict, Tuple, Callable, Type, Optional, TypeVar, Sequence, get_type_hints, Any, cast
 
 from dataclass_factory import Factory
 from requests import RequestException, Session, Response
-from typing_extensions import TypedDict
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
 
 
 class ApiError(Exception):
@@ -153,9 +158,3 @@ class BaseClient:
                 url, error
             )
             raise ApiError("Cannot decode response") from error
-
-    post = partialmethod(request, method="POST")
-    get = partialmethod(request, method="GET", body=None)
-    delete = partialmethod(request, method="DELETE", body=None)
-    patch = partialmethod(request, method="PATCH")
-    put = partialmethod(request, method="PUT")

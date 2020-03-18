@@ -1,10 +1,11 @@
+import logging
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional, List, get_type_hints
 
-from dataclass_factory import Factory, Schema, NameStyle
+from dataclass_factory import Factory, NameStyle, Schema
 from requests import Session
 
-from base import BaseClient
+from dataclass_rest import BaseClient, get, post, delete
 
 
 @dataclass
@@ -22,21 +23,28 @@ class RealClient(BaseClient):
     def _init_factory(self):
         return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
 
-    def list_todos(self, userId: Optional[int]):
-        return self.get(url="todos", params=locals(), result_class=List[Todo])
+    @get("todos/{id}")
+    def get_todo(self, id: str) -> Todo:
+        pass
 
-    def get_todo(self, id: int):
-        return self.get(url=f"todos/{id}", result_class=Todo)
+    @get("todos")
+    def list_todos(self, user_id: Optional[int]) -> List[Todo]:
+        pass
 
+    @delete("todos/{id}")
     def delete_todo(self, id: int):
-        return self.delete(url=f"todos/{id}")
+        pass
 
-    def create_todo(self, todo: Todo):
-        return self.post(url=f"todos", body=todo, body_class=Todo, result_class=Todo)
+    @post("todos")
+    def create_todo(self, body: Todo) -> Todo:
+        """Созадем Todo"""
 
 
+logging.basicConfig(level=logging.DEBUG)
 client = RealClient()
-print(client.get_todo(1))
+print(get_type_hints(RealClient.list_todos.args_class))
+print()
+print(client.list_todos(user_id=1))
+print(client.get_todo(id="1"))
 print(client.delete_todo(1))
 print(client.create_todo(Todo(123456789, 111222333, "By Tishka17", False)))
-print(client.list_todos(userId=1))
