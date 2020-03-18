@@ -32,13 +32,14 @@ def rest(url_format: str, *, method: str, body_name: str):
         skipped = [x[1] for x in parsed_format]
         skipped.append(body_name)
         args_class = create_args_class(func, skipped)
+        func.args_class = args_class
 
         @wraps(func)
-        def inner(self, *args, **kwargs):
+        def inner(self: BaseClient, *args, **kwargs):
             params = getcallargs(func, self, *args, **kwargs)
             url = url_format.format(**params)
             body = params.get(body_name)
-            serialized_params = self.factory.dump(params, args_class)
+            serialized_params = self.params_factory.dump(params, args_class)
             return self.request(url=url, method=method,
                                 body=body, params=serialized_params,
                                 body_class=body_class, result_class=result_class)
@@ -79,7 +80,7 @@ def create_args_class(func: Callable, skipped: Sequence[str]):
         if x in skipped:
             continue
         fields[x] = s.annotations.get(x, Any)
-    return TypedDict(f"{func.__name__}_Args", fields)
+    return TypedDict(f"{func.__name__}_Args", fields)  # type: ignore
 
 
 class BaseClient:
@@ -92,9 +93,13 @@ class BaseClient:
             ("", 404): self._handle_404
         }
         self.factory = self._init_factory()
+        self.params_factory = self._init_params_factory() or self.factory
 
     def _init_factory(self):
         return Factory()
+
+    def _init_params_factory(self):
+        return
 
     def _handle_404(self, repsonse: Response):
         raise NotFoundError
@@ -120,7 +125,7 @@ class BaseClient:
                 body_class: Optional[Type[BT]] = None,
                 result_class: Optional[Type[RT]] = None) -> RT:
         url = "%s/%s" % (self.base_url, url)
-        self.__logger.debug("Sending requests to `%s`", url)
+        self.__logger.debug("Sending requests to `%s` wtih %s", url, params)
         if body_class:
             body = self.factory.dump(body, body_class)
         try:
