@@ -1,5 +1,8 @@
 # Dataclass REST
 
+[![PyPI version](https://badge.fury.io/py/dataclass-rest.svg)](https://badge.fury.io/py/dataclass-rest)
+[![Build Status](https://travis-ci.org/Tishka17/dataclass_rest.svg?branch=master)](https://travis-ci.org/Tishka17/dataclass_rest)
+
 A modern and simple way to create clients for REST like APIs
 
 ## Quickstart
