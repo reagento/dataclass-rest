@@ -1,4 +1,5 @@
-from .base import BaseClient, get, post, delete, patch, put
+from .base import BaseClient
+from .decorators import get, post, delete, patch, put
 from .errors import ApiError, NotFoundError
 
 __all__ = [

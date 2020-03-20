@@ -6,7 +6,8 @@ from typing import Optional, List, get_type_hints
 import aiohttp
 from dataclass_factory import Factory, NameStyle, Schema
 
-from dataclass_rest.async_base import AsyncBaseClient, async_get, async_delete, async_post
+from dataclass_rest import get, delete, post
+from dataclass_rest.async_base import AsyncBaseClient
 
 
 @dataclass
@@ -24,19 +25,19 @@ class RealAsyncClient(AsyncBaseClient):
     def _init_factory(self):
         return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
 
-    @async_get("todos/{id}")
+    @get("todos/{id}")
     async def get_todo(self, id: str) -> Todo:
         pass
 
-    @async_get("todos")
+    @get("todos")
     async def list_todos(self, user_id: Optional[int]) -> List[Todo]:
         pass
 
-    @async_delete("todos/{id}")
+    @delete("todos/{id}")
     async def delete_todo(self, id: int):
         pass
 
-    @async_post("todos")
+    @post("todos")
     async def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
 

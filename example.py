@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, List, get_type_hints
+from typing import Optional, List
 
 from dataclass_factory import Factory, NameStyle, Schema
 from requests import Session
@@ -42,8 +42,6 @@ class RealClient(BaseClient):
 
 logging.basicConfig(level=logging.DEBUG)
 client = RealClient()
-print(get_type_hints(RealClient.list_todos.args_class))
-print()
 print(client.list_todos(user_id=1))
 print(client.get_todo(id="1"))
 print(client.delete_todo(1))
