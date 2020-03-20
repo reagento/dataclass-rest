@@ -23,7 +23,7 @@ def rest(url_format: str, *, method: str, body_name: str):
             params = getcallargs(func, self, *args, **kwargs)
             url = url_format.format(**params)
             body = params.get(body_name)
-            serialized_params = self.params_factory.dump(params, func.args_class)
+            serialized_params = self.args_factory.dump(params, func.args_class)
             return self.request(url=url, method=method,
                                 body=body, params=serialized_params,
                                 body_class=body_class, result_class=result_class)

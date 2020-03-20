@@ -17,12 +17,15 @@ class BaseClient(Generic[SessionType]):
             ("", 404): self._handle_404
         }
         self.factory = self._init_factory()
-        self.params_factory = self._init_params_factory() or self.factory
+        self.args_factory = self._init_args_factory() or self.factory
 
     def _init_factory(self):
         return Factory()
 
-    def _init_params_factory(self):
+    def add_handler(self, handler: Callable, status_code: int, method: str = ""):
+        self.error_handlers[(method, status_code)] = handler
+
+    def _init_args_factory(self):
         return
 
     def _handle_404(self, response: Any):

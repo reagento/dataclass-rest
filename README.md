@@ -70,5 +70,9 @@ class RealClient(BaseClient):
 
 ## Configuring
 
-* Override `_init_factory` or `_init_params_factory` to provide dataclass factory with required settings (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
+* Override `_init_factory` or `_init_args_factory` to provide dataclass factory with required settings  
+    (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
 * You can use different body argument name if you want. Just pass `body_name` to the decorator.
+* `args_factory` can be configured with scehmas for every argument type.  
+    They are awailable as `args_class` of original method. E.g `RealClient.get_todo.args_class`
+* Custom error handlers can be set adding them to `error_handlers` using `add_handler` method
