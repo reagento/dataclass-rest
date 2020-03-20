@@ -2,14 +2,14 @@ import logging
 from json import JSONDecodeError
 from typing import Dict, Type, Optional
 
-from requests import RequestException
+from requests import RequestException, Session
 
 from .base import BaseClient
 from .common import BT, RT
 from .errors import ApiError
 
 
-class Client(BaseClient):
+class Client(BaseClient[Session]):
     __logger = logging.getLogger(__name__)
 
     def request(self, *, url: str, method: str,

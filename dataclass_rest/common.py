@@ -11,6 +11,7 @@ else:
 RT = TypeVar("RT")
 BT = TypeVar("BT")
 F = TypeVar('F', bound=Callable[..., Any])
+SessionType = TypeVar("SessionType")
 
 
 def create_args_class(func: Callable, skipped: Sequence[str]):

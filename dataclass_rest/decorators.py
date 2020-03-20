@@ -3,7 +3,7 @@ from inspect import getcallargs, iscoroutinefunction
 from typing import cast
 
 try:
-    from .async_base import AsyncBaseClient
+    from .async_base import AsyncClient
 
     has_async = True
 except ImportError:
@@ -30,7 +30,7 @@ def rest(url_format: str, *, method: str, body_name: str):
 
         if iscoroutinefunction(func) and has_async:
             @wraps(func)
-            async def async_inner(self: AsyncBaseClient, *args, **kwargs):
+            async def async_inner(self: AsyncClient, *args, **kwargs):
                 return await inner(self, *args, **kwargs)
 
             return cast(F, async_inner)

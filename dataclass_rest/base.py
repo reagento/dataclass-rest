@@ -1,17 +1,16 @@
 import logging
-from typing import Dict, Type, Optional
-from typing import Tuple, Callable, Sequence, Any
+from typing import Dict, Type, Optional, Tuple, Callable, Sequence, Any, Generic
 
 from dataclass_factory import Factory
 
-from .common import BT, RT
+from .common import BT, RT, SessionType
 from .errors import ApiError, NotFoundError
 
 
-class BaseClient:
+class BaseClient(Generic[SessionType]):
     __logger = logging.getLogger(__name__)
 
-    def __init__(self, base_url: str, session: Any):
+    def __init__(self, base_url: str, session: SessionType):
         self.base_url = base_url.rstrip("/")
         self.session = session
         self.error_handlers: Dict[Tuple[str, int], Callable] = {
@@ -45,8 +44,8 @@ class BaseClient:
             if v != self or (skip and v in skip)
         }
 
-    async def request(self, *, url: str, method: str,
-                      params: Optional[Dict] = None, body: Optional[BT] = None,
-                      body_class: Optional[Type[BT]] = None,
-                      result_class: Optional[Type[RT]] = None):
+    def request(self, *, url: str, method: str,
+                params: Optional[Dict] = None, body: Optional[BT] = None,
+                body_class: Optional[Type[BT]] = None,
+                result_class: Optional[Type[RT]] = None):
         raise NotImplementedError

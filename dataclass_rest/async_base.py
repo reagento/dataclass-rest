@@ -2,20 +2,20 @@ import logging
 from json import JSONDecodeError
 from typing import Dict, Type, Optional, Awaitable
 
-from aiohttp import ClientError, ClientResponse
+from aiohttp import ClientError, ClientResponse, ClientSession
 
 from .base import BaseClient
 from .common import RT, BT
 from .errors import ApiError
 
 
-class AsyncClient(BaseClient):
+class AsyncClient(BaseClient[ClientSession]):
     __logger = logging.getLogger(__name__)
 
     async def request(self, *, url: str, method: str,
                       params: Optional[Dict] = None, body: Optional[BT] = None,
                       body_class: Optional[Type[BT]] = None,
-                      result_class: Optional[Type[RT]] = None) -> Awaitable[RT]:
+                      result_class: Optional[Type[RT]] = None) -> RT:
         url = "%s/%s" % (self.base_url, url)
         self.__logger.debug("Sending requests to `%s` wtih %s", url, params)
         if body_class:
