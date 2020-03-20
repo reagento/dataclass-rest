@@ -1,6 +1,6 @@
 # Dataclass REST
 
-A modern way to create clients for REST like APIs
+A modern and simple way to create clients for REST like APIs
 
 ## Quickstart
 
