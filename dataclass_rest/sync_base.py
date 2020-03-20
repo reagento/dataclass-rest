@@ -45,3 +45,8 @@ class Client(BaseClient[Session]):
                 url, error
             )
             raise ApiError("Cannot decode response") from error
+
+
+__all__ = [
+    "Client"
+]

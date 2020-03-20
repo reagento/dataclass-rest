@@ -5,7 +5,8 @@ from typing import Optional, List
 from dataclass_factory import Factory, NameStyle, Schema
 from requests import Session
 
-from dataclass_rest import Client, get, post, delete
+from dataclass_rest import get, post, delete
+from dataclass_rest.sync_base import Client
 
 
 @dataclass

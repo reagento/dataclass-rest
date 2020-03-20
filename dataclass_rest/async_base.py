@@ -1,6 +1,6 @@
 import logging
 from json import JSONDecodeError
-from typing import Dict, Type, Optional, Awaitable
+from typing import Dict, Type, Optional
 
 from aiohttp import ClientError, ClientResponse, ClientSession
 
@@ -45,3 +45,8 @@ class AsyncClient(BaseClient[ClientSession]):
                 url, error
             )
             raise ApiError("Cannot decode response") from error
+
+
+__all__ = [
+    "AsyncClient"
+]

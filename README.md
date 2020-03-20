@@ -7,7 +7,7 @@ A modern way to create clients for REST like APIs
 
 Step 1. Install
 ```bash
-pip install dataclass_rest
+pip install dataclass_rest requests
 ```
 
 
@@ -27,9 +27,9 @@ Step 3. Create and configure client
 ```python
 
 from requests import Session
-from dataclass_rest import BaseClient
+from dataclass_rest.sync_base import BaseClient
 
-class RealClient(BaseClient):
+class RealClient(Client):
     def __init__(self):
         super().__init__("https://example.com/api", Session())
 ```
@@ -44,9 +44,10 @@ Use any method arguments to format URL.
 ```python
 from typing import Optional, List
 from requests import Session
-from dataclass_rest import BaseClient, get, post, delete
+from dataclass_rest import get, post, delete
+from dataclass_rest.sync_base import Client
 
-class RealClient(BaseClient):
+class RealClient(Client):
     def __init__(self):
         super().__init__("https://example.com/api", Session())
 
@@ -67,6 +68,13 @@ class RealClient(BaseClient):
         """Созадем Todo"""
 ```
 
+## Asyncio
+
+To use async client insted of sync:
+
+1. Install `aiohttp` (instead of `reuests`)
+2. Change `dataclass_rest.sync_base.Client` to `dataclass_rest.async_base.AsyncClient`
+3. Add `async` keyword to your methods 
 
 ## Configuring
 
@@ -76,3 +84,4 @@ class RealClient(BaseClient):
 * `args_factory` can be configured with scehmas for every argument type.  
     They are awailable as `args_class` of original method. E.g `RealClient.get_todo.args_class`
 * Custom error handlers can be set adding them to `error_handlers` using `add_handler` method
+ 
