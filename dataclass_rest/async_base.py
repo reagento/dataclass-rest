@@ -1,52 +1,16 @@
 import logging
-from functools import wraps
-from inspect import getcallargs
 from json import JSONDecodeError
-from typing import Dict, Tuple, Callable, Type, Optional, Sequence, Awaitable, cast
+from typing import Dict, Type, Optional, Awaitable
 
-from aiohttp import ClientSession, ClientError, ClientResponse
-from dataclass_factory import Factory
+from aiohttp import ClientError, ClientResponse
 
-from .common import RT, BT, F, create_args_class, get_method_classes, get_skipped
-from .errors import ApiError, NotFoundError
+from .base import BaseClient
+from .common import RT, BT
+from .errors import ApiError
 
 
-class AsyncBaseClient:
+class AsyncClient(BaseClient):
     __logger = logging.getLogger(__name__)
-
-    def __init__(self, base_url: str, session: ClientSession):
-        self.base_url = base_url.rstrip("/")
-        self.session = session
-        self.error_handlers: Dict[Tuple[str, int], Callable] = {
-            ("", 404): self._handle_404
-        }
-        self.factory = self._init_factory()
-        self.params_factory = self._init_params_factory() or self.factory
-
-    def _init_factory(self):
-        return Factory()
-
-    def _init_params_factory(self):
-        return
-
-    def _handle_404(self, response: ClientResponse):
-        raise NotFoundError
-
-    def handle_error(self, method: str, response: ClientResponse):
-        handler = self.error_handlers.get((method, response.status))
-        if not handler:
-            handler = self.error_handlers.get(("", response.status))
-        if not handler:
-            raise ApiError(str(response))
-
-    def _filter_params(self, params: Optional[Dict], skip: Sequence = None):
-        if not params:
-            return params
-        return {
-            k: v
-            for k, v in params.items()
-            if v != self or (skip and v in skip)
-        }
 
     async def request(self, *, url: str, method: str,
                       params: Optional[Dict] = None, body: Optional[BT] = None,
@@ -63,8 +27,8 @@ class AsyncBaseClient:
                 params=self._filter_params(params, (result_class, body_class)),
                 json=body
             )
-            if not response.status:
-                return self.handle_error(method, response)
+            if (response.status // 100) != 2:
+                return self.handle_error(method, response.status, response)
             result = await response.json()
             if result_class:
                 return self.factory.load(result, result_class)

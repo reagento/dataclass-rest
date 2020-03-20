@@ -1,9 +1,9 @@
-from .base import BaseClient
+from .sync import Client
 from .decorators import get, post, delete, patch, put
 from .errors import ApiError, NotFoundError
 
 __all__ = [
-    "BaseClient",
+    "Client",
     "get",
     "post",
     "put",

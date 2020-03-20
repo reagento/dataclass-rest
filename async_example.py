@@ -7,7 +7,7 @@ import aiohttp
 from dataclass_factory import Factory, NameStyle, Schema
 
 from dataclass_rest import get, delete, post
-from dataclass_rest.async_base import AsyncBaseClient
+from dataclass_rest.async_base import AsyncClient
 
 
 @dataclass
@@ -18,7 +18,7 @@ class Todo:
     completed: bool
 
 
-class RealAsyncClient(AsyncBaseClient):
+class RealAsyncClient(AsyncClient):
     def __init__(self, client: aiohttp.ClientSession):
         super().__init__("https://jsonplaceholder.typicode.com/", client)
 
