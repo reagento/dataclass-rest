@@ -1,13 +1,14 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Optional, List, get_type_hints
+from typing import Optional, List, get_type_hints, BinaryIO, Any
 
 import aiohttp
 from dataclass_factory import Factory, NameStyle, Schema
 
 from dataclass_rest import get, delete, post
 from dataclass_rest.async_base import AsyncClient
+from dataclass_rest.decorators import file
 
 
 @dataclass
@@ -40,6 +41,14 @@ class RealAsyncClient(AsyncClient):
     @post("todos")
     async def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
+
+    @get("get", base_url="https://httpbin.org/")
+    def get_httpbin(self) -> Any:
+        """Используемый другой base_url"""
+
+    @file("post", base_url="https://httpbin.org/")
+    def upload_image(self, f: BinaryIO) -> Any:
+        """Заргужаем картинку"""
 
 
 async def main():
