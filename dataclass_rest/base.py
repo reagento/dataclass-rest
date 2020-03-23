@@ -1,10 +1,12 @@
 import logging
-from typing import Dict, Type, Optional, Tuple, Callable, Sequence, Any, Generic
+from typing import Dict, Type, Optional, Tuple, Callable, Sequence, Any, Generic, BinaryIO
 
 from dataclass_factory import Factory
 
 from .common import BT, RT, SessionType
 from .errors import ApiError, NotFoundError
+
+File = Optional[Tuple[str, BinaryIO]]
 
 
 class BaseClient(Generic[SessionType]):
@@ -47,8 +49,22 @@ class BaseClient(Generic[SessionType]):
             if v != self or (skip and v in skip)
         }
 
+    def _prepare_request(self, url: str, method: str,
+                         params: Optional[Dict] = None, body: Optional[BT] = None, file: File = None,
+                         body_class: Optional[Type[BT]] = None,
+                         result_class: Optional[Type[RT]] = None, base_url: Optional[str] = None):
+        url = "%s/%s" % (base_url if base_url else self.base_url, url)
+        self.__logger.debug("Sending requests to `%s` wtih %s", url, params)
+        if body_class:
+            body = self.factory.dump(body, body_class)
+
+        upload_file = None
+        if file is not None:
+            upload_file = {file[0]: file[1]}
+        return url, body, upload_file
+
     def request(self, *, url: str, method: str,
-                params: Optional[Dict] = None, body: Optional[BT] = None,
+                params: Optional[Dict] = None, body: Optional[BT] = None, file: File = None,
                 body_class: Optional[Type[BT]] = None,
-                result_class: Optional[Type[RT]] = None):
+                result_class: Optional[Type[RT]] = None, base_url: Optional[str] = None):
         raise NotImplementedError
