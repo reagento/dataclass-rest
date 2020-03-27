@@ -49,11 +49,15 @@ class BaseClient(Generic[SessionType]):
             if v != self or (skip and v in skip)
         }
 
-    def _prepare_request(self, url: str, method: str,
-                         params: Optional[Dict] = None, body: Optional[BT] = None, file: File = None,
+    def _prepare_request(self, url: str,
+                         method: str,
+                         params: Optional[Dict] = None,
+                         body: Optional[BT] = None,
                          body_class: Optional[Type[BT]] = None,
-                         result_class: Optional[Type[RT]] = None, base_url: Optional[str] = None):
-        url = "%s/%s" % (base_url if base_url else self.base_url, url)
+                         file: File = None,
+                         result_class: Optional[Type[RT]] = None,
+                         base_url: Optional[str] = None) -> Tuple[str, Any, Optional[Dict[str, BinaryIO]]]:
+        url = "%s/%s" % (base_url or self.base_url, url)
         self.__logger.debug("Sending requests to `%s` wtih %s", url, params)
         if body_class:
             body = self.factory.dump(body, body_class)

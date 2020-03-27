@@ -47,7 +47,7 @@ class RealAsyncClient(AsyncClient):
         """Используемый другой base_url"""
 
     @file("post", base_url="https://httpbin.org/")
-    def upload_image(self, f: BinaryIO) -> Any:
+    def upload_image(self, file: BinaryIO) -> Any:
         """Заргужаем картинку"""
 
 

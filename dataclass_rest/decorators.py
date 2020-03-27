@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import getcallargs, iscoroutinefunction
-from typing import cast, Optional
+from typing import cast, Optional, BinaryIO
 
 try:
     from .async_base import AsyncClient
@@ -71,13 +71,14 @@ def multipart(url_format: str, *, method: str, body_name: str, file_name: Option
             params = getcallargs(func, self, *args, **kwargs)
             url = url_format.format(**params)
             binary_stream = params.get(body_name)
+            if not isinstance(binary_stream, BinaryIO):
+                raise TypeError(f"{body_name} exptected to be BinaryIO expected, {type(binary_stream)} got")
 
             field_name = file_name  # field_name is multipart form field name
             if not field_name:  # if user does not provide default filename
-                name = getattr(binary_stream, 'name', None)  # we will use filename from file descriptor
-                if name:
-                    raise Exception("file should have name")
-                field_name = name
+                field_name = getattr(binary_stream, 'name')  # we will use filename from file descriptor
+                if not field_name:
+                    raise ValueError("File must have name")
 
             return self.request(url=url, method=method, file=(field_name, binary_stream), base_url=base_url)
 
@@ -92,5 +93,5 @@ def multipart(url_format: str, *, method: str, body_name: str, file_name: Option
     return dec
 
 
-def file(url_format: str, body_name: str = "f", base_url: str = ""):
+def file(url_format: str, body_name: str = "file", base_url: str = ""):
     return multipart(url_format, method="POST", body_name=body_name, base_url=base_url)

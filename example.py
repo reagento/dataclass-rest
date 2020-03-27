@@ -46,7 +46,7 @@ class RealClient(Client):
         """Используемый другой base_url"""
 
     @file("post", base_url="https://httpbin.org/")
-    def upload_image(self, f: BinaryIO):
+    def upload_image(self, file: BinaryIO):
         """Заргужаем картинку"""
 
 

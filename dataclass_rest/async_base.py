@@ -13,10 +13,20 @@ class AsyncClient(BaseClient[ClientSession]):
     __logger = logging.getLogger(__name__)
 
     async def request(self, *, url: str, method: str,
-                      params: Optional[Dict] = None, body: Optional[BT] = None, file: File = None,
+                      params: Optional[Dict] = None, body: Optional[BT] = None,
+                      file: File = None,
                       body_class: Optional[Type[BT]] = None,
                       result_class: Optional[Type[RT]] = None, base_url: Optional[str] = None) -> RT:
-        url, body, upload_file = self._prepare_request(url, method, params, body, body_class, result_class, base_url)
+        url, body, upload_file = self._prepare_request(
+            url=url,
+            method=method,
+            params=params,
+            body=body,
+            body_class=body_class,
+            file=file,
+            result_class=result_class,
+            base_url=base_url
+        )
 
         try:
             response: ClientResponse = await self.session.request(
