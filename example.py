@@ -1,11 +1,12 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, BinaryIO, Any
 
 from dataclass_factory import Factory, NameStyle, Schema
 from requests import Session
 
 from dataclass_rest import get, post, delete
+from dataclass_rest.decorators import file
 from dataclass_rest.sync_base import Client
 
 
@@ -39,6 +40,14 @@ class RealClient(Client):
     @post("todos")
     def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
+
+    @get("get", base_url="https://httpbin.org/")
+    def get_httpbin(self):
+        """Используемый другой base_url"""
+
+    @file("post", base_url="https://httpbin.org/")
+    def upload_image(self, f: BinaryIO):
+        """Заргужаем картинку"""
 
 
 logging.basicConfig(level=logging.DEBUG)
