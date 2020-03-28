@@ -1,4 +1,5 @@
 import string
+import random
 import sys
 from inspect import getfullargspec
 from typing import TypeVar, Callable, Any, Sequence, get_type_hints
@@ -10,8 +11,13 @@ else:
 
 RT = TypeVar("RT")
 BT = TypeVar("BT")
+PT = TypeVar("PT")
 F = TypeVar('F', bound=Callable[..., Any])
 SessionType = TypeVar("SessionType")
+
+
+def new_id():
+    return ''.join([random.choice(list('123456789')) for x in range(12)])
 
 
 def create_args_class(func: Callable, skipped: Sequence[str]):
