@@ -1,7 +1,7 @@
 import string
 import sys
 from inspect import getfullargspec
-from typing import TypeVar, Callable, Any, Sequence, get_type_hints
+from typing import TypeVar, Callable, Any, Sequence, get_type_hints, Optional
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -28,7 +28,7 @@ def create_args_class(func: Callable, skipped: Sequence[str]):
     return TypedDict(f"{func.__name__}_Args", fields)  # type: ignore
 
 
-def get_method_classes(func: Callable, body_name: str):
+def get_method_classes(func: Callable, body_name: Optional[str]=None):
     """
     gets result class and body class from method typehints
     :param func: function to decorate
@@ -37,7 +37,10 @@ def get_method_classes(func: Callable, body_name: str):
     """
     hints = get_type_hints(func)
     result_class = hints.get("return")
-    body_class = hints.get(body_name)
+    if body_name:
+        body_class = hints.get(body_name)
+    else:
+        body_class = None
     return result_class, body_class
 
 

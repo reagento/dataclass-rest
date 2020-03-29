@@ -1,4 +1,4 @@
-from .decorators import get, post, delete, patch, put
+from .decorators import get, post, delete, patch, put, jsonrpc
 from .errors import ApiError, NotFoundError
 
 __all__ = [
@@ -9,4 +9,5 @@ __all__ = [
     "delete",
     "ApiError",
     "NotFoundError",
+    "jsonrpc"
 ]

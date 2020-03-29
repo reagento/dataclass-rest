@@ -7,6 +7,7 @@ from requests import RequestException, Session
 from .base import BaseClient, File
 from .common import BT, RT
 from .errors import ApiError
+from .jsonrpc import JsonRpcMixin
 
 
 class Client(BaseClient[Session]):
@@ -53,6 +54,10 @@ class Client(BaseClient[Session]):
                 url, error
             )
             raise ApiError("Cannot decode response") from error
+
+
+class JsonRpcClient(Client, JsonRpcMixin):
+    pass
 
 
 __all__ = [

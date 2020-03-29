@@ -7,6 +7,7 @@ from aiohttp import ClientError, ClientResponse, ClientSession
 from .base import BaseClient, File
 from .common import RT, BT
 from .errors import ApiError
+from .jsonrpc import JsonRpcMixin
 
 
 class AsyncClient(BaseClient[ClientSession]):
@@ -55,6 +56,8 @@ class AsyncClient(BaseClient[ClientSession]):
             )
             raise ApiError("Cannot decode response") from error
 
+class AsyncJsonRpcClient(AsyncClient, JsonRpcMixin):
+    pass
 
 __all__ = [
     "AsyncClient"
