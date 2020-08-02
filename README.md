@@ -68,7 +68,7 @@ class RealClient(Client):
 
     @post("todos")
     def create_todo(self, body: Todo) -> Todo:
-        """Созадем Todo"""
+        """Создаем Todo"""
 ```
 
 ## Asyncio
