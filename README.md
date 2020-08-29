@@ -75,7 +75,7 @@ class RealClient(Client):
 
 To use async client insted of sync:
 
-1. Install `aiohttp` (instead of `reuests`)
+1. Install `aiohttp` (instead of `requests`)
 2. Change `dataclass_rest.sync_base.Client` to `dataclass_rest.async_base.AsyncClient`
 3. Add `async` keyword to your methods 
 
