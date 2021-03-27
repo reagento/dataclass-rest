@@ -1,5 +1,5 @@
 import logging
-from json import JSONDecodeError
+from json import JSONDecodeError, dumps
 from typing import Dict, Type, Optional
 
 from aiohttp import ClientError, ClientResponse, ClientSession
@@ -29,7 +29,7 @@ class AsyncClient(BaseClient[ClientSession]):
         )
 
         try:
-            params = {i: json.dumps(params[i]) if isinstance(params[i], bool) else params[i] for i in params}
+            params = {i: dumps(params[i]) if isinstance(params[i], bool) else params[i] for i in params}
             response: ClientResponse = await self.session.request(
                 method=method,
                 url=url,
