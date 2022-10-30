@@ -1,13 +1,12 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, List, BinaryIO, Any
+from typing import Optional, List
 
 from dataclass_factory import Factory, NameStyle, Schema
 from requests import Session
 
+from dataclass_rest import Client
 from dataclass_rest import get, post, delete
-from dataclass_rest.decorators import file
-from dataclass_rest.sync_base import Client
 
 
 @dataclass
@@ -20,9 +19,12 @@ class Todo:
 
 class RealClient(Client):
     def __init__(self):
-        super().__init__("https://jsonplaceholder.typicode.com/", Session())
+        super().__init__(
+            base_url="https://jsonplaceholder.typicode.com/",
+            session=Session(),
+        )
 
-    def _init_factory(self):
+    def _init_request_body_factory(self):
         return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
 
     @get("todos/{id}")
@@ -41,13 +43,18 @@ class RealClient(Client):
     def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
 
-    @get("get", base_url="https://httpbin.org/")
+
+class SecondClient(Client):
+    def __init__(self):
+        super().__init__("https://httpbin.org/", Session())
+
+    @get("get")
     def get_httpbin(self):
         """Используемый другой base_url"""
 
-    @file("post", base_url="https://httpbin.org/")
-    def upload_image(self, file: BinaryIO):
-        """Заргужаем картинку"""
+    # @file("post")
+    # def upload_image(self, file: BinaryIO):
+    #     """Заргужаем картинку"""
 
 
 logging.basicConfig(level=logging.DEBUG)

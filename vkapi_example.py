@@ -6,8 +6,7 @@ from typing import List, TypeVar, Generic
 from dataclass_factory import Factory, Schema
 from requests import Session
 
-from dataclass_rest import get
-from dataclass_rest.sync_base import Client
+from dataclass_rest import get, Client
 
 T = TypeVar("T")
 
@@ -42,13 +41,13 @@ class VkClient(Client):
         session.params = {"access_token": token, "v": "5.131"}
         super(VkClient, self).__init__(
             base_url="https://api.vk.com/method/",
-            session=session
+            session=session,
         )
 
     def set_token(self, token: str) -> None:
-        self.session.params["access_token"] = token
+        self.session.query_params["access_token"] = token
 
-    def _init_args_factory(self):
+    def _init_request_args_factory(self):
         return Factory(schemas={
             int: Schema(serializer=str),
             bool: Schema(serializer=int),

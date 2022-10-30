@@ -10,7 +10,7 @@ from .parse_func import parse_func, DEFAULT_BODY_PARAM
 def as_sync_rest(
         method_spec: Method,
 ):
-    @wraps
+    @wraps(method_spec.func)
     def inner(self, *args, **kwargs):
         args = transform_call(
             client=self,

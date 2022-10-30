@@ -1,12 +1,12 @@
 from inspect import getcallargs
 from typing import Any, Tuple, Dict
 
-from .base_client import BaseClient
+from .base_client import ClientProtocol
 from .method import Method, Args
 
 
 def transform_call(
-        client: BaseClient,
+        client: ClientProtocol,
         method: Method,
         args: Tuple[Any, ...],
         kwargs: Dict[str, Any],
@@ -29,10 +29,10 @@ def transform_call(
 
 
 def transform_result(
-        client: BaseClient,
+        client: ClientProtocol,
         method: Method,
         result: Any,
 ) -> Any:
-    client.response_body_factory.load(
+    return client.response_body_factory.load(
         result, method.response_type,
     )
