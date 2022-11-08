@@ -3,12 +3,12 @@ from inspect import iscoroutinefunction
 from typing import Any, Dict, Optional, Callable
 
 from .call_transform import transform_call, transform_result
-from .method import Method
+from .method import MethodSpec
 from .parse_func import parse_func, DEFAULT_BODY_PARAM
 
 
 def as_sync_rest(
-        method_spec: Method,
+        method_spec: MethodSpec,
 ):
     @wraps(method_spec.func)
     def inner(self, *args, **kwargs):
@@ -21,21 +21,21 @@ def as_sync_rest(
 
         response = self.request(
             url=args.url,
-            method=method_spec.method,
+            method=method_spec.http_method,
             params=args.query_params,
             body=args.body,
             # TODO file
         )
+        print(response)
 
         return transform_result(
             client=self, method=method_spec, result=response,
         )
-
     return inner
 
 
 def as_async_rest(
-        method_spec: Method,
+        method_spec: MethodSpec,
 ):
     @wraps
     async def inner(self, *args, **kwargs):

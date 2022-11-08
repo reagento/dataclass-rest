@@ -2,18 +2,16 @@ from typing import Protocol, Any
 
 from dataclass_factory import Factory
 
+from dataclass_rest.methodspec import HttpRequest
+
 
 class ClientProtocol(Protocol):
     request_body_factory: Factory
     request_args_factory: Factory
     response_body_factory: Factory
 
-    def request(
-            self,
-            url: str,
-            method: str,
-            body: Any,
-            params: Any,
+    def do_request(
+            self, request: HttpRequest,
     ) -> Any:
         raise NotImplementedError
 

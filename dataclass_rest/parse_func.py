@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from inspect import getfullargspec, FullArgSpec
 from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
 
-from dataclass_rest.method import Method
+from .methodspec import MethodSpec
 
 DEFAULT_BODY_PARAM = "body"
 
@@ -56,11 +56,11 @@ def parse_func(
         url_template: str,
         additional_params: Dict[str, Any],
         body_param_name: str = DEFAULT_BODY_PARAM,
-) -> Method:
+) -> MethodSpec:
     spec = getfullargspec(func)
     url_params = get_url_params(url_template)
     skipped_params = url_params + [body_param_name]
-    return Method(
+    return MethodSpec(
         func=func,
         method=method,
         url_template=url_template,
