@@ -1,3 +1,4 @@
+from functools import partial
 from inspect import iscoroutinefunction
 from typing import Any, Dict, Optional, Callable
 
@@ -35,3 +36,10 @@ def rest(
             return Method(method_spec, method_class=AiohttpBoundMethod)
 
     return dec
+
+
+get = partial(rest, method="GET")
+post = partial(rest, method="POST")
+put = partial(rest, method="PUT")
+patch = partial(rest, method="PATCH")
+delete = partial(rest, method="DELETE")

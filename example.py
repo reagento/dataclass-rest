@@ -3,10 +3,9 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 from dataclass_factory import Factory, NameStyle, Schema
-from requests import Session
 
-from dataclass_rest import Client
 from dataclass_rest import get, post, delete
+from dataclass_rest.requests import RequestsClient
 
 
 @dataclass
@@ -17,11 +16,10 @@ class Todo:
     completed: bool
 
 
-class RealClient(Client):
+class RealClient(RequestsClient):
     def __init__(self):
         super().__init__(
             base_url="https://jsonplaceholder.typicode.com/",
-            session=Session(),
         )
 
     def _init_request_body_factory(self):
@@ -44,9 +42,9 @@ class RealClient(Client):
         """Созадем Todo"""
 
 
-class SecondClient(Client):
+class SecondClient(RequestsClient):
     def __init__(self):
-        super().__init__("https://httpbin.org/", Session())
+        super().__init__(base_url="https://httpbin.org/")
 
     @get("get")
     def get_httpbin(self):
