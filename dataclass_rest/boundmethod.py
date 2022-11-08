@@ -1,11 +1,12 @@
+from abc import ABC, abstractmethod
 from inspect import getcallargs
-from typing import Dict, Any, Callable, Optional
+from typing import Dict, Any, Callable, Optional, NoReturn
 
 from .base_client import ClientProtocol
 from .methodspec import MethodSpec, HttpRequest
 
 
-class BoundMethod:
+class BoundMethod(ABC):
     def __init__(
             self,
             method_spec: MethodSpec,
@@ -14,7 +15,7 @@ class BoundMethod:
     ):
         self.method_spec = method_spec
         self.client = client
-        self.on_error = on_error
+        self.on_error = on_error or self._on_error_default
 
     def _apply_args(self, *args, **kwargs) -> Dict:
         return getcallargs(
@@ -48,14 +49,84 @@ class BoundMethod:
             url=url,
         )
 
+    @abstractmethod
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
 
     def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
         return request
 
+    @abstractmethod
     def _pre_process_response(self, response: Any) -> Any:
         raise NotImplementedError
 
     def _post_process_response(self, response: Any) -> Any:
         return response
+
+    def _on_error_default(self, response: Any) -> Any:
+        raise RuntimeError  # TODO exceptions
+
+
+class SyncMethod(BoundMethod):
+    def __call__(self, *args, **kwargs):
+        func_args = self._apply_args(*args, **kwargs)
+        request = self._create_request(
+            url=self._get_url(func_args),
+            query_params=self._get_query_params(func_args),
+            body=self._get_body(func_args)
+        )
+        request = self._pre_process_request(request)
+        raw_response = self.client.do_request(request)
+        response = self._pre_process_response(raw_response)
+        response = self._post_process_response(response)
+        return response
+
+    def _pre_process_response(self, response: Any) -> Any:
+        if not self._response_ok(response):
+            return self.on_error(response)
+        return self.client.response_body_factory.load(
+            self._response_body(response),
+            self.method_spec.response_type,
+        )
+
+    @abstractmethod
+    def _response_ok(self, response: Any) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _response_body(self, response: Any) -> Any:
+        raise NotImplementedError
+
+
+class AsyncMethod(BoundMethod):
+    async def __call__(self, *args, **kwargs):
+        func_args = self._apply_args(*args, **kwargs)
+        request = self._create_request(
+            url=self._get_url(func_args),
+            query_params=self._get_query_params(func_args),
+            body=self._get_body(func_args)
+        )
+        request = self._pre_process_request(request)
+        raw_response = await self.client.do_request(request)
+        response = await self._pre_process_response(raw_response)
+        response = self._post_process_response(response)
+        return response
+
+    async def _pre_process_response(self, response: Any) -> Any:
+        if not await self._response_ok(response):
+            return await self.on_error(response)
+        return self.client.response_body_factory.load(
+            await self._response_body(response),
+            self.method_spec.response_type,
+        )
+
+    async def _on_error_default(self, response: Any) -> NoReturn:
+        raise RuntimeError  # TODO exceptions
+
+    @abstractmethod
+    async def _response_body(self, response: Any) -> Any:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def _response_ok(self, response: Any) -> bool:
+        raise NotImplementedError

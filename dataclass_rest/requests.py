@@ -1,33 +1,20 @@
 import urllib.parse
 from typing import Any, Optional
 
-from requests import Session
+from requests import Session, Response
 
 from .base_client import BaseClient
-from .boundmethod import BoundMethod
+from .boundmethod import SyncMethod
 from .methodspec import HttpRequest
 
 
-class RequestsBoundMethod(BoundMethod):
-    def __call__(self, *args, **kwargs):
-        func_args = self._apply_args(*args, **kwargs)
-        request = self._create_request(
-            url=self._get_url(func_args),
-            query_params=self._get_query_params(func_args),
-            body=self._get_body(func_args)
-        )
-        request = self._pre_process_request(request)
-        raw_response = self.client.do_request(request)
-        response = self._pre_process_response(raw_response)
-        response = self._post_process_response(response)
-        return response
+class RequestsMethod(SyncMethod):
 
-    def _pre_process_response(self, response: Any) -> Any:
-        if not response.ok:
-            return self.on_error(response)
-        return self.client.response_body_factory.load(
-            response.json(), self.method_spec.response_type,
-        )
+    def _response_ok(self, response: Response) -> bool:
+        return response.ok
+
+    def _response_body(self, response: Response) -> Any:
+        return response.json()
 
 
 class RequestsClient(BaseClient):
