@@ -30,9 +30,9 @@ Step 3. Create and configure client
 ```python
 
 from requests import Session
-from dataclass_rest.sync_base import BaseClient
+from dataclass_rest.http.requests import RequestsClient
 
-class RealClient(Client):
+class RealClient(RequestsClient):
     def __init__(self):
         super().__init__("https://example.com/api", Session())
 ```
@@ -48,9 +48,9 @@ Use any method arguments to format URL.
 from typing import Optional, List
 from requests import Session
 from dataclass_rest import get, post, delete
-from dataclass_rest.sync_base import Client
+from dataclass_rest.http.requests import RequestsClient
 
-class RealClient(Client):
+class RealClient(RequestsClient):
     def __init__(self):
         super().__init__("https://example.com/api", Session())
 
@@ -76,15 +76,17 @@ class RealClient(Client):
 To use async client insted of sync:
 
 1. Install `aiohttp` (instead of `reuests`)
-2. Change `dataclass_rest.sync_base.Client` to `dataclass_rest.async_base.AsyncClient`
+2. Change `dataclass_rest.http.requests.RequestsClient` to `dataclass_rest.http.aiohttp.AiohttpClient`
 3. Add `async` keyword to your methods 
 
 ## Configuring
 
-* Override `_init_factory` or `_init_args_factory` to provide dataclass factory with required settings  
-    (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
+* Override `__init_request_body_factory`, `__init_request_args_factory` and _`init_response_body_factory` 
+  to provide dataclass factory with required settings  
+  (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
 * You can use different body argument name if you want. Just pass `body_name` to the decorator.
-* `args_factory` can be configured with scehmas for every argument type.  
-    They are awailable as `args_class` of original method. E.g `RealClient.get_todo.args_class`
-* Custom error handlers can be set adding them to `error_handlers` using `add_handler` method
+* `request_args_factory` can be configured with scehmas for every argument type.  
+    They are awailable as `methodspec.query_params_type` of original method. 
+    E.g `RealClient.get_todo.methodspec.query_params_type`
+* Custom error handlers can be set using `@youemthod.on_error` decorator in your class
  
