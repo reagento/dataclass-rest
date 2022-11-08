@@ -1,63 +1,9 @@
-from functools import wraps
 from inspect import iscoroutinefunction
 from typing import Any, Dict, Optional, Callable
 
-from .call_transform import transform_call, transform_result
-from .method import MethodSpec
+from .boundmethod import BoundMethod
+from .method import Method
 from .parse_func import parse_func, DEFAULT_BODY_PARAM
-
-
-def as_sync_rest(
-        method_spec: MethodSpec,
-):
-    @wraps(method_spec.func)
-    def inner(self, *args, **kwargs):
-        args = transform_call(
-            client=self,
-            method=method_spec,
-            args=args,
-            kwargs=kwargs,
-        )
-
-        response = self.request(
-            url=args.url,
-            method=method_spec.http_method,
-            params=args.query_params,
-            body=args.body,
-            # TODO file
-        )
-        print(response)
-
-        return transform_result(
-            client=self, method=method_spec, result=response,
-        )
-    return inner
-
-
-def as_async_rest(
-        method_spec: MethodSpec,
-):
-    @wraps
-    async def inner(self, *args, **kwargs):
-        args = transform_call(
-            client=self,
-            method=method_spec,
-            args=args,
-            kwargs=kwargs,
-        )
-
-        response = await self.request(
-            url=args.url,
-            params=args.query_params,
-            body=args.body,
-            # TODO file
-        )
-
-        return transform_result(
-            client=self, method=method_spec, result=response,
-        )
-
-    return inner
 
 
 def rest(
@@ -66,11 +12,12 @@ def rest(
         method: str,
         body_name: str = DEFAULT_BODY_PARAM,
         additional_params: Optional[Dict[str, Any]] = None,
-):
+        method_class: Optional[Callable[..., BoundMethod]] = None
+) -> Callable[[Callable], Method]:
     if additional_params is None:
         additional_params = {}
 
-    def dec(func: Callable):
+    def dec(func: Callable) -> Method:
         method_spec = parse_func(
             func=func,
             body_param_name=body_name,
@@ -78,9 +25,13 @@ def rest(
             method=method,
             additional_params=additional_params,
         )
-        if iscoroutinefunction(func):
-            return as_async_rest(method_spec)
+        if method_class:
+            return Method(method_spec, method_class=method_class)
+        elif iscoroutinefunction(func):
+            from .requests import RequestsBoundMethod
+            return Method(method_spec, method_class=RequestsBoundMethod)
         else:
-            return as_sync_rest(method_spec)
+            from .aiohttp import AiohttpBoundMethod
+            return Method(method_spec, method_class=AiohttpBoundMethod)
 
     return dec

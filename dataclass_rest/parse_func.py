@@ -1,18 +1,10 @@
 import string
-from dataclasses import dataclass
 from inspect import getfullargspec, FullArgSpec
 from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
 
 from .methodspec import MethodSpec
 
 DEFAULT_BODY_PARAM = "body"
-
-
-@dataclass
-class MethodArgsSpec:
-    url_params: List[str]
-    body_param: str
-    query_params: List[str]
 
 
 def get_url_params(url_template: str) -> List[str]:
@@ -62,7 +54,7 @@ def parse_func(
     skipped_params = url_params + [body_param_name]
     return MethodSpec(
         func=func,
-        method=method,
+        http_method=method,
         url_template=url_template,
         query_params_type=create_query_params_type(spec, func, skipped_params),
         body_type=create_body_type(spec, body_param_name),
