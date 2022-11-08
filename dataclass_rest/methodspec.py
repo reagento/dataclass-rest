@@ -23,10 +23,3 @@ class MethodSpec:
         self.query_params_type = query_params_type
         self.additional_params = additional_params
 
-
-@dataclass
-class HttpRequest:
-    body: Any
-    query_params: Dict
-    url: str
-    method: str

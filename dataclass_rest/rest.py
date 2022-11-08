@@ -29,11 +29,11 @@ def rest(
         if method_class:
             return Method(method_spec, method_class=method_class)
         elif iscoroutinefunction(func):
-            from .requests import RequestsBoundMethod
-            return Method(method_spec, method_class=RequestsBoundMethod)
+            from .http.aiohttp import AiohttpMethod
+            return Method(method_spec, method_class=AiohttpMethod)
         else:
-            from .aiohttp import AiohttpBoundMethod
-            return Method(method_spec, method_class=AiohttpBoundMethod)
+            from .http.requests import RequestsMethod
+            return Method(method_spec, method_class=RequestsMethod)
 
     return dec
 

@@ -2,7 +2,7 @@ from typing import Protocol, Any
 
 from dataclass_factory import Factory
 
-from dataclass_rest.methodspec import HttpRequest
+from .http_request import HttpRequest
 
 
 class ClientProtocol(Protocol):

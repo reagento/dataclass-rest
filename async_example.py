@@ -1,14 +1,14 @@
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Optional, List, get_type_hints, BinaryIO, Any
+from typing import Optional, List, Any
 
 import aiohttp
+from aiohttp import ClientSession
 from dataclass_factory import Factory, NameStyle, Schema
 
 from dataclass_rest import get, delete, post
-from dataclass_rest.async_base import AsyncClient
-from dataclass_rest.decorators import file
+from dataclass_rest.http.aiohttp import AiohttpClient
 
 
 @dataclass
@@ -19,11 +19,14 @@ class Todo:
     completed: bool
 
 
-class RealAsyncClient(AsyncClient):
-    def __init__(self, client: aiohttp.ClientSession):
-        super().__init__("https://jsonplaceholder.typicode.com/", client)
+class RealAsyncClient(AiohttpClient):
+    def __init__(self, session: ClientSession):
+        super().__init__(
+            base_url="https://jsonplaceholder.typicode.com/",
+            session=session,
+        )
 
-    def _init_factory(self):
+    def _init_request_body_factory(self) -> Factory:
         return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
 
     @get("todos/{id}")
@@ -42,25 +45,26 @@ class RealAsyncClient(AsyncClient):
     async def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
 
-    @get("get", base_url="https://httpbin.org/")
+    @get("https://httpbin.org/get")
     def get_httpbin(self) -> Any:
         """Используемый другой base_url"""
 
-    @file("post", base_url="https://httpbin.org/")
-    def upload_image(self, file: BinaryIO) -> Any:
-        """Заргужаем картинку"""
+    # @file("post", base_url="https://httpbin.org/")
+    # def upload_image(self, file: BinaryIO) -> Any:
+    #     """Заргужаем картинку"""
 
 
 async def main():
-    async with aiohttp.ClientSession() as client:
+    async with aiohttp.ClientSession() as session:
         logging.basicConfig(level=logging.DEBUG)
-        client = RealAsyncClient(client)
-        print(get_type_hints(RealAsyncClient.list_todos.args_class))
+        client = RealAsyncClient(session)
+        print(RealAsyncClient.list_todos.method_spec)
         print()
         print(await client.list_todos(user_id=1))
         print(await client.get_todo(id="1"))
         print(await client.delete_todo(1))
-        print(await client.create_todo(Todo(123456789, 111222333, "By Tishka17", False)))
+        print(await client.create_todo(
+            Todo(123456789, 111222333, "By Tishka17", False)))
 
 
 loop = asyncio.get_event_loop()

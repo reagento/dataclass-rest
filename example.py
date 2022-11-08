@@ -5,7 +5,7 @@ from typing import Optional, List
 from dataclass_factory import Factory, NameStyle, Schema
 
 from dataclass_rest import get, post, delete
-from dataclass_rest.requests import RequestsClient
+from dataclass_rest.http.requests import RequestsClient
 
 
 @dataclass
@@ -22,7 +22,7 @@ class RealClient(RequestsClient):
             base_url="https://jsonplaceholder.typicode.com/",
         )
 
-    def _init_request_body_factory(self):
+    def _init_request_body_factory(self) -> Factory:
         return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
 
     @get("todos/{id}")
@@ -41,16 +41,10 @@ class RealClient(RequestsClient):
     def create_todo(self, body: Todo) -> Todo:
         """Созадем Todo"""
 
-
-class SecondClient(RequestsClient):
-    def __init__(self):
-        super().__init__(base_url="https://httpbin.org/")
-
-    @get("get")
+    @get("https://httpbin.org/get")
     def get_httpbin(self):
         """Используемый другой base_url"""
 
-    # @file("post")
     # def upload_image(self, file: BinaryIO):
     #     """Заргужаем картинку"""
 
@@ -61,3 +55,4 @@ print(client.list_todos(user_id=1))
 print(client.get_todo(id="1"))
 print(client.delete_todo(1))
 print(client.create_todo(Todo(123456789, 111222333, "By Tishka17", False)))
+print(client.get_httpbin())

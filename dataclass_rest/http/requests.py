@@ -3,9 +3,9 @@ from typing import Any, Optional
 
 from requests import Session, Response
 
-from .base_client import BaseClient
-from .boundmethod import SyncMethod
-from .methodspec import HttpRequest
+from ..base_client import BaseClient
+from ..boundmethod import SyncMethod
+from ..http_request import HttpRequest
 
 
 class RequestsMethod(SyncMethod):
@@ -31,6 +31,6 @@ class RequestsClient(BaseClient):
         return self.session.request(
             url=urllib.parse.urljoin(self.base_url, request.url),
             method=request.method,
-            json=request.body,
+            json=request.json_body,
             params=request.query_params,
         )

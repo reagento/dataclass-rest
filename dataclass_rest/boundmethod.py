@@ -3,7 +3,8 @@ from inspect import getcallargs
 from typing import Dict, Any, Callable, Optional, NoReturn
 
 from .base_client import ClientProtocol
-from .methodspec import MethodSpec, HttpRequest
+from .http_request import HttpRequest
+from .methodspec import MethodSpec
 
 
 class BoundMethod(ABC):
@@ -45,23 +46,13 @@ class BoundMethod(ABC):
         return HttpRequest(
             method=self.method_spec.http_method,
             query_params=query_params,
-            body=body,
+            json_body=body,
             url=url,
         )
 
     @abstractmethod
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
-
-    def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
-        return request
-
-    @abstractmethod
-    def _pre_process_response(self, response: Any) -> Any:
-        raise NotImplementedError
-
-    def _post_process_response(self, response: Any) -> Any:
-        return response
 
     def _on_error_default(self, response: Any) -> Any:
         raise RuntimeError  # TODO exceptions
@@ -79,6 +70,12 @@ class SyncMethod(BoundMethod):
         raw_response = self.client.do_request(request)
         response = self._pre_process_response(raw_response)
         response = self._post_process_response(response)
+        return response
+
+    def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
+        return request
+
+    def _post_process_response(self, response: Any) -> Any:
         return response
 
     def _pre_process_response(self, response: Any) -> Any:
@@ -106,10 +103,21 @@ class AsyncMethod(BoundMethod):
             query_params=self._get_query_params(func_args),
             body=self._get_body(func_args)
         )
-        request = self._pre_process_request(request)
+        request = await self._pre_process_request(request)
         raw_response = await self.client.do_request(request)
         response = await self._pre_process_response(raw_response)
-        response = self._post_process_response(response)
+        await self._release_raw_response(raw_response)
+        response = await self._post_process_response(response)
+        return response
+
+    async def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
+        return request
+
+    @abstractmethod
+    async def _release_raw_response(self, response: Any) -> None:
+        raise NotImplementedError
+
+    async def _post_process_response(self, response: Any) -> Any:
         return response
 
     async def _pre_process_response(self, response: Any) -> Any:
