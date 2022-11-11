@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type, Callable
+from typing import Any, Dict, Type, Callable, List
 
 
 class MethodSpec:
@@ -12,6 +12,7 @@ class MethodSpec:
             body_type: Type,
             is_json_request: bool,
             query_params_type: Type,
+            file_param_names: List[str],
             additional_params: Dict[str, Any],
     ):
         self.func = func
@@ -23,3 +24,4 @@ class MethodSpec:
         self.query_params_type = query_params_type
         self.additional_params = additional_params
         self.is_json_request = is_json_request
+        self.file_param_names = file_param_names

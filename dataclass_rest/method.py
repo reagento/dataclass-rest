@@ -9,12 +9,14 @@ class Method:
             self,
             method_spec: MethodSpec,
             method_class: Optional[Callable[..., BoundMethod]] = None,
-            method_class_fallback: Optional[Callable[..., BoundMethod]] = None,
     ):
+        self.name = method_spec.func.__name__
         self.method_spec = method_spec
         self.method_class = method_class
+        self._on_error = None
 
     def __set_name__(self, owner, name):
+        self.name = name
         if owner.method_class:
             self.method_class = owner.method_class
         else:
@@ -27,11 +29,12 @@ class Method:
 
     def __get__(self, instance, objtype=None) -> BoundMethod:
         return self.method_class(
+            name=self.name,
             method_spec=self.method_spec,
             client=instance,
-            on_error=self.on_error,
+            on_error=self._on_error,
         )
 
     def on_error(self, func) -> "Method":
-        self.on_error = func
+        self._on_error = func
         return self

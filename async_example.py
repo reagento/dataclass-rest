@@ -7,7 +7,7 @@ import aiohttp
 from aiohttp import ClientSession
 from dataclass_factory import Factory, NameStyle, Schema
 
-from dataclass_rest import get, delete, post
+from dataclass_rest import get, delete, post, File
 from dataclass_rest.http.aiohttp import AiohttpClient
 
 
@@ -49,9 +49,9 @@ class RealAsyncClient(AiohttpClient):
     def get_httpbin(self) -> Any:
         """Используемый другой base_url"""
 
-    # @file("post", base_url="https://httpbin.org/")
-    # def upload_image(self, file: BinaryIO) -> Any:
-    #     """Заргужаем картинку"""
+    @post("https://httpbin.org/post")
+    def upload_image(self, file: File):
+        """Загружаем картинку"""
 
 
 async def main():
@@ -65,6 +65,10 @@ async def main():
         print(await client.delete_todo(1))
         print(await client.create_todo(
             Todo(123456789, 111222333, "By Tishka17", False)))
+
+        print(await client.upload_image(
+            File(open("async_example.py", "rb"))
+        ))
 
 
 loop = asyncio.get_event_loop()

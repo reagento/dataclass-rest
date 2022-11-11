@@ -1,11 +1,11 @@
 import urllib.parse
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 from requests import Session, Response
 
 from ..base_client import BaseClient
 from ..boundmethod import SyncMethod
-from ..http_request import HttpRequest
+from ..http_request import HttpRequest, File
 
 
 class RequestsMethod(SyncMethod):
@@ -29,6 +29,9 @@ class RequestsClient(BaseClient):
         self.session = session or Session()
         self.base_url = base_url
 
+    def _prepare_file(self, fieldname: str, file: File) -> Tuple:
+        return (file.filename or fieldname, file.contents, file.content_type)
+
     def do_request(self, request: HttpRequest) -> Any:
         if request.is_json_request:
             json = request.data
@@ -36,10 +39,17 @@ class RequestsClient(BaseClient):
         else:
             json = None
             data = request.data
+
+        files = {
+            name: self._prepare_file(name, file)
+            for name, file in request.files.items()
+        }
+
         return self.session.request(
             url=urllib.parse.urljoin(self.base_url, request.url),
             method=request.method,
             json=json,
             params=request.query_params,
             data=data,
+            files=files,
         )

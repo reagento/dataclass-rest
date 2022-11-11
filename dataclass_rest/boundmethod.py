@@ -1,19 +1,24 @@
 from abc import ABC, abstractmethod
 from inspect import getcallargs
+from logging import getLogger
 from typing import Dict, Any, Callable, Optional, NoReturn
 
 from .base_client import ClientProtocol
-from .http_request import HttpRequest
+from .http_request import HttpRequest, File
 from .methodspec import MethodSpec
+
+logger = getLogger(__name__)
 
 
 class BoundMethod(ABC):
     def __init__(
             self,
+            name: str,
             method_spec: MethodSpec,
             client: ClientProtocol,
             on_error: Optional[Callable[[Any], Any]],
     ):
+        self.name = name
         self.method_spec = method_spec
         self.client = client
         self.on_error = on_error or self._on_error_default
@@ -37,10 +42,18 @@ class BoundMethod(ABC):
             args, self.method_spec.query_params_type,
         )
 
+    def _get_files(self, args) -> Dict[str, File]:
+        return {
+            field: args[field]
+            for field in self.method_spec.file_param_names
+            if field in args
+        }
+
     def _create_request(
             self,
             url: str,
             query_params: Any,
+            files: Dict[str, File],
             data: Any,
     ) -> HttpRequest:
         return HttpRequest(
@@ -48,6 +61,7 @@ class BoundMethod(ABC):
             query_params=query_params,
             is_json_request=self.method_spec.is_json_request,
             data=data,
+            files=files,
             url=url,
         )
 
@@ -61,11 +75,13 @@ class BoundMethod(ABC):
 
 class SyncMethod(BoundMethod):
     def __call__(self, *args, **kwargs):
+        logger.debug("Calling sync method %s", self.name)
         func_args = self._apply_args(*args, **kwargs)
         request = self._create_request(
             url=self._get_url(func_args),
             query_params=self._get_query_params(func_args),
-            data=self._get_body(func_args)
+            data=self._get_body(func_args),
+            files=self._get_files(func_args),
         )
         request = self._pre_process_request(request)
         raw_response = self.client.do_request(request)
@@ -98,11 +114,13 @@ class SyncMethod(BoundMethod):
 
 class AsyncMethod(BoundMethod):
     async def __call__(self, *args, **kwargs):
+        logger.debug("Calling async method %s", self.name)
         func_args = self._apply_args(*args, **kwargs)
         request = self._create_request(
             url=self._get_url(func_args),
             query_params=self._get_query_params(func_args),
             data=self._get_body(func_args),
+            files=self._get_files(func_args),
         )
         request = await self._pre_process_request(request)
         raw_response = await self.client.do_request(request)

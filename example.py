@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from dataclass_factory import Factory, NameStyle, Schema
 
-from dataclass_rest import get, post, delete
+from dataclass_rest import get, post, delete, File
 from dataclass_rest.http.requests import RequestsClient
 
 
@@ -45,14 +45,16 @@ class RealClient(RequestsClient):
     def get_httpbin(self):
         """Используемый другой base_url"""
 
-    # def upload_image(self, file: BinaryIO):
-    #     """Заргужаем картинку"""
+    @post("https://httpbin.org/post")
+    def upload_image(self, file: File):
+        """Заргужаем картинку"""
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 client = RealClient()
 print(client.list_todos(user_id=1))
 print(client.get_todo(id="1"))
 print(client.delete_todo(1))
 print(client.create_todo(Todo(123456789, 111222333, "By Tishka17", False)))
 print(client.get_httpbin())
+print(client.upload_image(File(open("example.py", "rb"))))

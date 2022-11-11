@@ -1,7 +1,8 @@
 import string
-from inspect import getfullargspec, FullArgSpec
+from inspect import getfullargspec, FullArgSpec, isclass
 from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
 
+from .http_request import File
 from .methodspec import MethodSpec
 
 DEFAULT_BODY_PARAM = "body"
@@ -42,6 +43,14 @@ def create_response_type(
     return spec.annotations.get("return", Any)
 
 
+def get_file_params(spec):
+    return [
+        field
+        for field, field_type in spec.annotations.items()
+        if isclass(field_type) and issubclass(field_type, File)
+    ]
+
+
 def parse_func(
         func: Callable,
         method: str,
@@ -52,7 +61,8 @@ def parse_func(
 ) -> MethodSpec:
     spec = getfullargspec(func)
     url_params = get_url_params(url_template)
-    skipped_params = url_params + [body_param_name]
+    file_params = get_file_params(spec)
+    skipped_params = url_params + file_params + [body_param_name]
     return MethodSpec(
         func=func,
         http_method=method,
@@ -63,4 +73,5 @@ def parse_func(
         body_param_name=body_param_name,
         additional_params=additional_params,
         is_json_request=is_json_request,
+        file_param_names=file_params,
     )

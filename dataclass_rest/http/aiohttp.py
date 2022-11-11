@@ -1,6 +1,7 @@
 import urllib.parse
 from typing import Any, Optional
 
+from aiohttp import FormData
 from aiohttp.client import ClientResponse, ClientSession
 
 from ..base_client import BaseClient
@@ -38,6 +39,14 @@ class AiohttpClient(BaseClient):
         else:
             json = None
             data = request.data
+        if request.files:
+            data = FormData(data or {})
+            for name, file in request.files.items():
+                data.add_field(
+                    name,
+                    filename=file.filename, content_type=file.content_type,
+                    value=file.contents,
+                )
         return await self.session.request(
             url=urllib.parse.urljoin(self.base_url, request.url),
             method=request.method,
