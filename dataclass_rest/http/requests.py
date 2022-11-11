@@ -18,6 +18,8 @@ class RequestsMethod(SyncMethod):
 
 
 class RequestsClient(BaseClient):
+    method_class = RequestsMethod
+
     def __init__(
             self,
             base_url: str,

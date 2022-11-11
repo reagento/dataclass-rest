@@ -1,5 +1,4 @@
 from functools import partial
-from inspect import iscoroutinefunction
 from typing import Any, Dict, Optional, Callable
 
 from .boundmethod import BoundMethod
@@ -26,14 +25,7 @@ def rest(
             method=method,
             additional_params=additional_params,
         )
-        if method_class:
-            return Method(method_spec, method_class=method_class)
-        elif iscoroutinefunction(func):
-            from .http.aiohttp import AiohttpMethod
-            return Method(method_spec, method_class=AiohttpMethod)
-        else:
-            from .http.requests import RequestsMethod
-            return Method(method_spec, method_class=RequestsMethod)
+        return Method(method_spec, method_class=method_class)
 
     return dec
 

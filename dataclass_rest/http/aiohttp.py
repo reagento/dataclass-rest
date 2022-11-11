@@ -20,6 +20,8 @@ class AiohttpMethod(AsyncMethod):
 
 
 class AiohttpClient(BaseClient):
+    method_class = AiohttpMethod
+
     def __init__(
             self,
             base_url: str,
