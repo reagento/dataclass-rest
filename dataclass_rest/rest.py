@@ -12,7 +12,8 @@ def rest(
         method: str,
         body_name: str = DEFAULT_BODY_PARAM,
         additional_params: Optional[Dict[str, Any]] = None,
-        method_class: Optional[Callable[..., BoundMethod]] = None
+        method_class: Optional[Callable[..., BoundMethod]] = None,
+        send_json: bool = True,
 ) -> Callable[[Callable], Method]:
     if additional_params is None:
         additional_params = {}
@@ -24,6 +25,7 @@ def rest(
             url_template=url_template,
             method=method,
             additional_params=additional_params,
+            is_json_request=send_json,
         )
         return Method(method_spec, method_class=method_class)
 

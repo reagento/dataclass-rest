@@ -47,7 +47,8 @@ def parse_func(
         method: str,
         url_template: str,
         additional_params: Dict[str, Any],
-        body_param_name: str = DEFAULT_BODY_PARAM,
+        is_json_request: bool,
+        body_param_name: str,
 ) -> MethodSpec:
     spec = getfullargspec(func)
     url_params = get_url_params(url_template)
@@ -61,4 +62,5 @@ def parse_func(
         response_type=create_response_type(spec),
         body_param_name=body_param_name,
         additional_params=additional_params,
+        is_json_request=is_json_request,
     )

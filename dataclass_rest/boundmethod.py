@@ -41,12 +41,13 @@ class BoundMethod(ABC):
             self,
             url: str,
             query_params: Any,
-            body: Any,
+            data: Any,
     ) -> HttpRequest:
         return HttpRequest(
             method=self.method_spec.http_method,
             query_params=query_params,
-            json_body=body,
+            is_json_request=self.method_spec.is_json_request,
+            data=data,
             url=url,
         )
 
@@ -64,7 +65,7 @@ class SyncMethod(BoundMethod):
         request = self._create_request(
             url=self._get_url(func_args),
             query_params=self._get_query_params(func_args),
-            body=self._get_body(func_args)
+            data=self._get_body(func_args)
         )
         request = self._pre_process_request(request)
         raw_response = self.client.do_request(request)
@@ -101,7 +102,7 @@ class AsyncMethod(BoundMethod):
         request = self._create_request(
             url=self._get_url(func_args),
             query_params=self._get_query_params(func_args),
-            body=self._get_body(func_args)
+            data=self._get_body(func_args),
         )
         request = await self._pre_process_request(request)
         raw_response = await self.client.do_request(request)

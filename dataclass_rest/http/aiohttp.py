@@ -32,9 +32,16 @@ class AiohttpClient(BaseClient):
         self.base_url = base_url
 
     async def do_request(self, request: HttpRequest) -> Any:
+        if request.is_json_request:
+            json = request.data
+            data = None
+        else:
+            json = None
+            data = request.data
         return await self.session.request(
             url=urllib.parse.urljoin(self.base_url, request.url),
             method=request.method,
-            json=request.json_body,
+            json=json,
+            data=data,
             params=request.query_params,
         )

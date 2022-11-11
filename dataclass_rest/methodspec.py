@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Any, Dict, Type, Callable
 
 
@@ -11,6 +10,7 @@ class MethodSpec:
             response_type: Type,
             body_param_name: str,
             body_type: Type,
+            is_json_request: bool,
             query_params_type: Type,
             additional_params: Dict[str, Any],
     ):
@@ -22,4 +22,4 @@ class MethodSpec:
         self.body_type = body_type
         self.query_params_type = query_params_type
         self.additional_params = additional_params
-
+        self.is_json_request = is_json_request

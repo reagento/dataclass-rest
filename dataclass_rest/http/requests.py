@@ -30,9 +30,16 @@ class RequestsClient(BaseClient):
         self.base_url = base_url
 
     def do_request(self, request: HttpRequest) -> Any:
+        if request.is_json_request:
+            json = request.data
+            data = None
+        else:
+            json = None
+            data = request.data
         return self.session.request(
             url=urllib.parse.urljoin(self.base_url, request.url),
             method=request.method,
-            json=request.json_body,
+            json=json,
             params=request.query_params,
+            data=data,
         )
