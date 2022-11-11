@@ -13,7 +13,7 @@ setup(
     description='An utility for writing simple clients for REST like APIs',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='0.1.1',
+    version='0.2',
     url='https://github.com/tishka17/dataclass_rest',
     author='A. Tikhonov',
     author_email='17@itishka.org',
@@ -24,7 +24,7 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3'
     ],
-    packages=['dataclass_rest'],
+    packages=['dataclass_rest', 'dataclass_rest.http'],
     install_requires=[
         'dataclasses;python_version<"3.7"',
         'dataclass-factory',
