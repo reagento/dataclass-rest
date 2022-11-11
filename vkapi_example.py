@@ -6,7 +6,8 @@ from typing import List, TypeVar, Generic
 from dataclass_factory import Factory, Schema
 from requests import Session
 
-from dataclass_rest import get, Client
+from dataclass_rest import get
+from dataclass_rest.http.requests import RequestsClient
 
 T = TypeVar("T")
 
@@ -35,7 +36,7 @@ class UsersSearchResult:
     items: List[User]
 
 
-class VkClient(Client):
+class VkClient(RequestsClient):
     def __init__(self, token: str):
         session = Session()
         session.params = {"access_token": token, "v": "5.131"}
@@ -72,7 +73,7 @@ TOKEN = ""
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     client = VkClient(TOKEN)
     print(client.get_users(["1", "2"]))
     print(client.search_users(q="tishka17", gender=GenderQuery.MALE))
