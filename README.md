@@ -89,4 +89,3 @@ To use async client insted of sync:
     They are awailable as `methodspec.query_params_type` of original method. 
     E.g `RealClient.get_todo.methodspec.query_params_type`
 * Custom error handlers can be set using `@youemthod.on_error` decorator in your class
- 
