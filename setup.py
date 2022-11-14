@@ -13,7 +13,7 @@ setup(
     description='An utility for writing simple clients for REST like APIs',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='0.2',
+    version='0.3.1',
     url='https://github.com/tishka17/dataclass_rest',
     author='A. Tikhonov',
     author_email='17@itishka.org',
