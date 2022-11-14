@@ -81,11 +81,9 @@ To use async client insted of sync:
 
 ## Configuring
 
-* Override `__init_request_body_factory`, `__init_request_args_factory` and _`init_response_body_factory` 
+* Override `_init_request_body_factory`, `_init_request_args_factory` and `_init_response_body_factory` 
   to provide dataclass factory with required settings  
   (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
 * You can use different body argument name if you want. Just pass `body_name` to the decorator.
-* `request_args_factory` can be configured with scehmas for every argument type.  
-    They are awailable as `methodspec.query_params_type` of original method. 
-    E.g `RealClient.get_todo.methodspec.query_params_type`
-* Custom error handlers can be set using `@youemthod.on_error` decorator in your class
+* To create dataclass-factory serialization schema for specific method query params (supposing that they all passed in a single TypedDict) create a method returning it and decorate with `@yourmethod.query_params_schema`.  
+* Custom error handlers can be set using `@yourmethod.on_error` decorator in your class
