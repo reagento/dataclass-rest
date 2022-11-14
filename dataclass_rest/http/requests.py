@@ -1,20 +1,34 @@
 import urllib.parse
+from json import JSONDecodeError
 from typing import Any, Optional, Tuple
 
-from requests import Session, Response
+from requests import Session, Response, RequestException
 
 from ..base_client import BaseClient
 from ..boundmethod import SyncMethod
+from ..exceptions import ClientLibraryError, ClientError, ServerError, \
+    MalformedResponse
 from ..http_request import HttpRequest, File
 
 
 class RequestsMethod(SyncMethod):
 
+    def _on_error_default(self, response: Response) -> Any:
+        if 400 <= response.status_code < 500:
+            raise ClientError(response.status_code)
+        else:
+            raise ServerError(response.status_code)
+
     def _response_ok(self, response: Response) -> bool:
         return response.ok
 
     def _response_body(self, response: Response) -> Any:
-        return response.json()
+        try:
+            return response.json()
+        except RequestException as e:
+            raise ClientLibraryError from e
+        except JSONDecodeError as e:
+            raise MalformedResponse from e
 
 
 class RequestsClient(BaseClient):
@@ -45,11 +59,14 @@ class RequestsClient(BaseClient):
             for name, file in request.files.items()
         }
 
-        return self.session.request(
-            url=urllib.parse.urljoin(self.base_url, request.url),
-            method=request.method,
-            json=json,
-            params=request.query_params,
-            data=data,
-            files=files,
-        )
+        try:
+            return self.session.request(
+                url=urllib.parse.urljoin(self.base_url, request.url),
+                method=request.method,
+                json=json,
+                params=request.query_params,
+                data=data,
+                files=files,
+            )
+        except RequestException as e:
+            raise ClientLibraryError from e

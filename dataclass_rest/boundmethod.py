@@ -3,9 +3,10 @@ from inspect import getcallargs
 from logging import getLogger
 from typing import Dict, Any, Callable, Optional, NoReturn, Type
 
-from dataclass_factory import Schema
+from dataclass_factory import Schema, PARSER_EXCEPTIONS
 
 from .client_protocol import ClientProtocol, ClientMethodProtocol
+from .exceptions import MalformedResponse
 from .http_request import HttpRequest, File
 from .methodspec import MethodSpec
 
@@ -112,10 +113,15 @@ class SyncMethod(BoundMethod):
     def _pre_process_response(self, response: Any) -> Any:
         if not self._response_ok(response):
             return self.on_error(response)
-        return self.client.response_body_factory.load(
-            self._response_body(response),
-            self.method_spec.response_type,
-        )
+
+        body = self._response_body(response)
+        try:
+            return self.client.response_body_factory.load(
+                body,
+                self.method_spec.response_type,
+            )
+        except PARSER_EXCEPTIONS as e:
+            raise MalformedResponse from e
 
     @abstractmethod
     def _response_ok(self, response: Any) -> bool:
@@ -156,10 +162,15 @@ class AsyncMethod(BoundMethod):
     async def _pre_process_response(self, response: Any) -> Any:
         if not await self._response_ok(response):
             return await self.on_error(response)
-        return self.client.response_body_factory.load(
-            await self._response_body(response),
-            self.method_spec.response_type,
-        )
+
+        body = await self._response_body(response)
+        try:
+            return self.client.response_body_factory.load(
+                body,
+                self.method_spec.response_type,
+            )
+        except PARSER_EXCEPTIONS as e:
+            raise MalformedResponse from e
 
     async def _on_error_default(self, response: Any) -> NoReturn:
         raise RuntimeError  # TODO exceptions
