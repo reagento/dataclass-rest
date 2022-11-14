@@ -1,20 +1,37 @@
 import urllib.parse
+from json import JSONDecodeError
 from typing import Any, Optional
 
 from aiohttp import FormData
-from aiohttp.client import ClientResponse, ClientSession
+from aiohttp.client import (
+    ClientResponse, ClientSession, ClientError as AioHttpClientError,
+)
 
 from ..base_client import BaseClient
 from ..boundmethod import AsyncMethod
+from ..exceptions import (
+    ClientError, ClientLibraryError, ServerError, MalformedResponse,
+)
 from ..http_request import HttpRequest
 
 
 class AiohttpMethod(AsyncMethod):
+    def _on_error_default(self, response: ClientResponse) -> Any:
+        if 400 <= response.status < 500:
+            raise ClientError(response.status)
+        else:
+            raise ServerError(response.status)
+
     async def _release_raw_response(self, response: ClientResponse) -> None:
         await response.release()
 
     async def _response_body(self, response: ClientResponse) -> Any:
-        return await response.json()
+        try:
+            return await response.json()
+        except AioHttpClientError as e:
+            raise ClientLibraryError from e
+        except JSONDecodeError as e:
+            raise MalformedResponse from e
 
     async def _response_ok(self, response: ClientResponse) -> bool:
         return response.ok
@@ -47,10 +64,13 @@ class AiohttpClient(BaseClient):
                     filename=file.filename, content_type=file.content_type,
                     value=file.contents,
                 )
-        return await self.session.request(
-            url=urllib.parse.urljoin(self.base_url, request.url),
-            method=request.method,
-            json=json,
-            data=data,
-            params=request.query_params,
-        )
+        try:
+            return await self.session.request(
+                url=urllib.parse.urljoin(self.base_url, request.url),
+                method=request.method,
+                json=json,
+                data=data,
+                params=request.query_params,
+            )
+        except AioHttpClientError as e:
+            raise ClientLibraryError from e

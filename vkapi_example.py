@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, TypeVar, Generic
 
-from dataclass_factory import Factory, Schema
+from dataclass_factory import Schema
 from requests import Session
 
 from dataclass_rest import get
@@ -48,13 +48,14 @@ class VkClient(RequestsClient):
     def set_token(self, token: str) -> None:
         self.session.query_params["access_token"] = token
 
-    def _init_request_args_factory(self):
-        return Factory(schemas={
+    def _init_request_args_schemas(self):
+        schemas = super()._init_request_args_schemas()
+        return schemas | {
             int: Schema(serializer=str),
             bool: Schema(serializer=int),
             List[int]: Schema(post_serialize=lambda d: ",".join(d)),
             List[str]: Schema(post_serialize=lambda d: ",".join(d)),
-        })
+        }
 
     @get("users.get")
     def get_users(self, user_ids: List[str]) -> Response[List[User]]:

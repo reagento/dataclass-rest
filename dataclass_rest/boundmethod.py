@@ -1,27 +1,32 @@
 from abc import ABC, abstractmethod
 from inspect import getcallargs
 from logging import getLogger
-from typing import Dict, Any, Callable, Optional, NoReturn
+from typing import Dict, Any, Callable, Optional, NoReturn, Type
 
-from .base_client import ClientProtocol
+from dataclass_factory import Schema, PARSER_EXCEPTIONS
+
+from .client_protocol import ClientProtocol, ClientMethodProtocol
+from .exceptions import MalformedResponse
 from .http_request import HttpRequest, File
 from .methodspec import MethodSpec
 
 logger = getLogger(__name__)
 
 
-class BoundMethod(ABC):
+class BoundMethod(ClientMethodProtocol, ABC):
     def __init__(
             self,
             name: str,
             method_spec: MethodSpec,
             client: ClientProtocol,
             on_error: Optional[Callable[[Any], Any]],
+            query_params_schema_getter: Optional[Callable],
     ):
         self.name = name
         self.method_spec = method_spec
         self.client = client
         self.on_error = on_error or self._on_error_default
+        self.query_params_schema_getter = query_params_schema_getter
 
     def _apply_args(self, *args, **kwargs) -> Dict:
         return getcallargs(
@@ -65,6 +70,16 @@ class BoundMethod(ABC):
             url=url,
         )
 
+    def get_query_params_schema(self) -> Optional[Schema]:
+        print("get_query_params_schema", self.name,
+              self.query_params_schema_getter)
+        if self.query_params_schema_getter:
+            return self.query_params_schema_getter(self.client)
+        return None
+
+    def get_query_params_type(self) -> Type:
+        return self.method_spec.query_params_type
+
     @abstractmethod
     def __call__(self, *args, **kwargs):
         raise NotImplementedError
@@ -98,10 +113,15 @@ class SyncMethod(BoundMethod):
     def _pre_process_response(self, response: Any) -> Any:
         if not self._response_ok(response):
             return self.on_error(response)
-        return self.client.response_body_factory.load(
-            self._response_body(response),
-            self.method_spec.response_type,
-        )
+
+        body = self._response_body(response)
+        try:
+            return self.client.response_body_factory.load(
+                body,
+                self.method_spec.response_type,
+            )
+        except PARSER_EXCEPTIONS as e:
+            raise MalformedResponse from e
 
     @abstractmethod
     def _response_ok(self, response: Any) -> bool:
@@ -142,10 +162,15 @@ class AsyncMethod(BoundMethod):
     async def _pre_process_response(self, response: Any) -> Any:
         if not await self._response_ok(response):
             return await self.on_error(response)
-        return self.client.response_body_factory.load(
-            await self._response_body(response),
-            self.method_spec.response_type,
-        )
+
+        body = await self._response_body(response)
+        try:
+            return self.client.response_body_factory.load(
+                body,
+                self.method_spec.response_type,
+            )
+        except PARSER_EXCEPTIONS as e:
+            raise MalformedResponse from e
 
     async def _on_error_default(self, response: Any) -> NoReturn:
         raise RuntimeError  # TODO exceptions

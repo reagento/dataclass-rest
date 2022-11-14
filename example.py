@@ -33,6 +33,11 @@ class RealClient(RequestsClient):
     def list_todos(self, user_id: Optional[int]) -> List[Todo]:
         pass
 
+    @list_todos.query_params_schema
+    def list_todos(self) -> Optional[Schema]:
+        # here we can customize Schema generation for query params
+        return None
+
     @delete("todos/{id}")
     def delete_todo(self, id: int):
         pass

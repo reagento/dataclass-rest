@@ -1,20 +1,9 @@
-from typing import Protocol, Any, Optional, Callable
+from inspect import isclass
+from typing import Optional, Callable, Type, Dict
 
-from dataclass_factory import Factory
+from dataclass_factory import Factory, Schema
 
-from .http_request import HttpRequest
-
-
-class ClientProtocol(Protocol):
-    request_body_factory: Factory
-    request_args_factory: Factory
-    response_body_factory: Factory
-    method_class: Optional[Callable]
-
-    def do_request(
-            self, request: HttpRequest,
-    ) -> Any:
-        raise NotImplementedError
+from .client_protocol import ClientProtocol, ClientMethodProtocol
 
 
 class BaseClient(ClientProtocol):
@@ -28,8 +17,21 @@ class BaseClient(ClientProtocol):
     def _init_request_body_factory(self) -> Factory:
         return Factory()
 
-    def _init_request_args_factory(self) -> Factory:
-        return self.request_body_factory
+    def _init_request_args_factory(self, schemas=None) -> Factory:
+        return Factory(schemas=self._init_request_args_schemas())
 
     def _init_response_body_factory(self) -> Factory:
         return self.request_body_factory
+
+    def _init_request_args_schemas(self) -> Dict[Type, Schema]:
+        cls = type(self)
+        schemas = {}
+        for name in dir(cls):
+            attr = getattr(cls, name)
+            # skip classes but keep our methods
+            # which contain information about query params schema
+            if isinstance(attr, ClientMethodProtocol) and not isclass(attr):
+                schema = attr.get_query_params_schema()
+                if schema:  # skip if not set
+                    schemas[attr.get_query_params_type()] = schema
+        return schemas
