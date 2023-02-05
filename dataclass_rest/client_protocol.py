@@ -1,6 +1,8 @@
-from typing import Protocol, Any, Optional, Callable, Type, runtime_checkable
+from typing import (
+    Protocol, Any, Optional, Callable, Type, runtime_checkable, TypeVar,
+)
 
-from dataclass_factory import Factory, Schema
+from dataclass_factory import Schema
 
 from .http_request import HttpRequest
 
@@ -14,10 +16,21 @@ class ClientMethodProtocol(Protocol):
         raise NotImplementedError
 
 
+TypeT = TypeVar("TypeT")
+
+
+class FactoryProtocol(Protocol):
+    def load(self, data: Any, class_: Type[TypeT]) -> TypeT:
+        raise NotImplementedError
+
+    def dump(self, data: TypeT, class_: Type[TypeT] = None) -> Any:
+        raise NotImplementedError
+
+
 class ClientProtocol(Protocol):
-    request_body_factory: Factory
-    request_args_factory: Factory
-    response_body_factory: Factory
+    request_body_factory: FactoryProtocol
+    request_args_factory: FactoryProtocol
+    response_body_factory: FactoryProtocol
     method_class: Optional[Callable]
 
     def do_request(
