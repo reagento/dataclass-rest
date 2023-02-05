@@ -3,7 +3,9 @@ from typing import Optional, Callable, Type, Dict
 
 from dataclass_factory import Factory, Schema
 
-from .client_protocol import ClientProtocol, ClientMethodProtocol
+from .client_protocol import (
+    ClientProtocol, ClientMethodProtocol, FactoryProtocol,
+)
 
 
 class BaseClient(ClientProtocol):
@@ -14,13 +16,13 @@ class BaseClient(ClientProtocol):
         self.request_args_factory = self._init_request_args_factory()
         self.response_body_factory = self._init_response_body_factory()
 
-    def _init_request_body_factory(self) -> Factory:
+    def _init_request_body_factory(self) -> FactoryProtocol:
         return Factory()
 
-    def _init_request_args_factory(self, schemas=None) -> Factory:
+    def _init_request_args_factory(self, schemas=None) -> FactoryProtocol:
         return Factory(schemas=self._init_request_args_schemas())
 
-    def _init_response_body_factory(self) -> Factory:
+    def _init_response_body_factory(self) -> FactoryProtocol:
         return self.request_body_factory
 
     def _init_request_args_schemas(self) -> Dict[Type, Schema]:

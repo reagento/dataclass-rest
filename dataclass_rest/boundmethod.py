@@ -71,8 +71,6 @@ class BoundMethod(ClientMethodProtocol, ABC):
         )
 
     def get_query_params_schema(self) -> Optional[Schema]:
-        print("get_query_params_schema", self.name,
-              self.query_params_schema_getter)
         if self.query_params_schema_getter:
             return self.query_params_schema_getter(self.client)
         return None
