@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import Optional, List, Any
 
 import aiohttp
+from adaptix import Retort, NameStyle, name_mapping
 from aiohttp import ClientSession
-from dataclass_factory import Factory, NameStyle, Schema
 
 from dataclass_rest import get, delete, post, File
 from dataclass_rest.http.aiohttp import AiohttpClient
@@ -26,8 +26,10 @@ class RealAsyncClient(AiohttpClient):
             session=session,
         )
 
-    def _init_request_body_factory(self) -> Factory:
-        return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
+    def _init_request_body_factory(self) -> Retort:
+        return Retort(recipe=[
+            name_mapping(name_style=NameStyle.CAMEL),
+        ])
 
     @get("todos/{id}")
     async def get_todo(self, id: str) -> Todo:
