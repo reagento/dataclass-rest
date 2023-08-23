@@ -3,8 +3,6 @@ from inspect import getcallargs
 from logging import getLogger
 from typing import Dict, Any, Callable, Optional, NoReturn, Type
 
-from dataclass_factory import Schema, PARSER_EXCEPTIONS
-
 from .client_protocol import ClientProtocol, ClientMethodProtocol
 from .exceptions import MalformedResponse
 from .http_request import HttpRequest, File
@@ -20,13 +18,11 @@ class BoundMethod(ClientMethodProtocol, ABC):
             method_spec: MethodSpec,
             client: ClientProtocol,
             on_error: Optional[Callable[[Any], Any]],
-            query_params_schema_getter: Optional[Callable],
     ):
         self.name = name
         self.method_spec = method_spec
         self.client = client
         self.on_error = on_error or self._on_error_default
-        self.query_params_schema_getter = query_params_schema_getter
 
     def _apply_args(self, *args, **kwargs) -> Dict:
         return getcallargs(
@@ -69,11 +65,6 @@ class BoundMethod(ClientMethodProtocol, ABC):
             files=files,
             url=url,
         )
-
-    def get_query_params_schema(self) -> Optional[Schema]:
-        if self.query_params_schema_getter:
-            return self.query_params_schema_getter(self.client)
-        return None
 
     def get_query_params_type(self) -> Type:
         return self.method_spec.query_params_type
@@ -118,7 +109,7 @@ class SyncMethod(BoundMethod):
                 body,
                 self.method_spec.response_type,
             )
-        except PARSER_EXCEPTIONS as e:
+        except (ValueError, TypeError, AttributeError) as e:
             raise MalformedResponse from e
 
     @abstractmethod
@@ -167,7 +158,7 @@ class AsyncMethod(BoundMethod):
                 body,
                 self.method_spec.response_type,
             )
-        except PARSER_EXCEPTIONS as e:
+        except (ValueError, TypeError, AttributeError) as e:
             raise MalformedResponse from e
 
     async def _on_error_default(self, response: Any) -> NoReturn:

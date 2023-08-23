@@ -1,4 +1,4 @@
-dataclass-factory
+adaptix
 typing_extensions
 aiohttp
 requests
