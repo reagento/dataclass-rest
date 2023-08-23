@@ -48,8 +48,8 @@ class VkClient(RequestsClient):
     def set_token(self, token: str) -> None:
         self.session.query_params["access_token"] = token
 
-    def _init_request_args_schemas(self):
-        schemas = super()._init_request_args_schemas()
+    def _init_request_args_recipe(self):
+        schemas = super()._init_request_args_recipe()
         return schemas | {
             int: Schema(serializer=str),
             bool: Schema(serializer=int),

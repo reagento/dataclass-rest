@@ -15,7 +15,6 @@ class Method:
         self.method_spec = method_spec
         self.method_class = method_class
         self._on_error = None
-        self._query_params_schema_getter = None
 
     def __set_name__(self, owner, name):
         self.name = name
@@ -37,13 +36,8 @@ class Method:
             method_spec=self.method_spec,
             client=instance,
             on_error=self._on_error,
-            query_params_schema_getter=self._query_params_schema_getter,
         )
 
     def on_error(self, func) -> "Method":
         self._on_error = func
-        return self
-
-    def query_params_schema(self, func) -> "Method":
-        self._query_params_schema_getter = func
         return self
