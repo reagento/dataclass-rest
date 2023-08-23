@@ -79,11 +79,26 @@ To use async client insted of sync:
 2. Change `dataclass_rest.http.requests.RequestsClient` to `dataclass_rest.http.aiohttp.AiohttpClient`
 3. Add `async` keyword to your methods 
 
-## Configuring
+## Configuration
 
-* Override `_init_request_body_factory`, `_init_request_args_factory` and `_init_response_body_factory` 
-  to provide dataclass factory with required settings  
-  (see [datacass_factory](https://github.com/Tishka17/dataclass_factory)).
-* You can use different body argument name if you want. Just pass `body_name` to the decorator.
-* To create dataclass-factory serialization schema for specific method query params (supposing that they all passed in a single TypedDict) create a method returning it and decorate with `@yourmethod.query_params_schema`.  
-* Custom error handlers can be set using `@yourmethod.on_error` decorator in your class
+### Parsing and serialization
+
+All parsing and serialization is done using instances of `FactoryProtocol`.
+They are create by client object during its initialization. Default implementation creates `Retort` from [adaptix](https://adaptix.readthedocs.io/)
+
+There are 3 of them:
+
+1. Request body factory. Created using `_init_request_body_factory`. It is used to convert body object to simple python classes before senging to the server
+2. Request args factory. Created using `_init_request_args_factory`. It is used to convert other parameters of method. All parameters are passed as a single object.
+Type of that object is generated and can be retrieved from your client methods using `.methodspec.query_params_type`
+3. Response body factory. Created using `_init_response_body_factory`. It is used to parse a server response.
+
+### Error handling
+
+You can attach error handler to single method using `@yourmethod.on_error` decorator in your class.
+
+To set same behavior for all methods inherit from BoundMethod class, override `_on_error_default` method and set that class as `Client.method_class`
+
+### Other params
+
+You can use different body argument name if you want. Just pass `body_name` to the decorator.
