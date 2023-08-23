@@ -1,9 +1,10 @@
 import logging
+import os
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, TypeVar, Generic
 
-from dataclass_factory import Schema
+from adaptix import Retort, dumper, Chain
 from requests import Session
 
 from dataclass_rest import get
@@ -48,14 +49,13 @@ class VkClient(RequestsClient):
     def set_token(self, token: str) -> None:
         self.session.query_params["access_token"] = token
 
-    def _init_request_args_recipe(self):
-        schemas = super()._init_request_args_recipe()
-        return schemas | {
-            int: Schema(serializer=str),
-            bool: Schema(serializer=int),
-            List[int]: Schema(post_serialize=lambda d: ",".join(d)),
-            List[str]: Schema(post_serialize=lambda d: ",".join(d)),
-        }
+    def _init_request_args_factory(self) -> Retort:
+        return Retort(recipe=[
+            dumper(bool, int),
+            dumper(int, str),
+            dumper(List[int], lambda d: ",".join(d), Chain.LAST),
+            dumper(List[str], lambda d: ",".join(d), Chain.LAST),
+        ])
 
     @get("users.get")
     def get_users(self, user_ids: List[str]) -> Response[List[User]]:
@@ -70,7 +70,7 @@ class VkClient(RequestsClient):
         pass
 
 
-TOKEN = ""
+TOKEN = os.getenv("VK_TOKEN")
 
 
 def main():
