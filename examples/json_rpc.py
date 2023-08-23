@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, List
 from uuid import uuid4
 
-from dataclass_factory import Factory, Schema, NameStyle
+from adaptix import Retort, name_mapping, NameStyle
 from requests import Response
 
 from dataclass_rest import post
@@ -56,10 +56,14 @@ class MyClient(JsonRPC):
     def __init__(self):
         super().__init__("https://rpc.ankr.com/eth_goerli")
 
-    def _init_response_body_factory(self) -> Factory:
-        return Factory(default_schema=Schema(
-            name_style=NameStyle.camel_lower,
-        ))
+    def _init_request_body_factory(self) -> Retort:
+        return Retort(
+            debug_path=True,
+            strict_coercion=False,
+            recipe=[
+                name_mapping(name_style=NameStyle.CAMEL),
+            ],
+        )
 
     @jsonrpc("eth_getTransactionByHash")
     def get_transaction_by_hash(self, body: List[str]) -> Transaction:
