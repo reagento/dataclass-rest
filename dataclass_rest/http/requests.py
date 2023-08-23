@@ -6,8 +6,9 @@ from requests import Session, Response, RequestException
 
 from ..base_client import BaseClient
 from ..boundmethod import SyncMethod
-from ..exceptions import ClientLibraryError, ClientError, ServerError, \
-    MalformedResponse
+from ..exceptions import (
+    ClientLibraryError, ClientError, ServerError, MalformedResponse,
+)
 from ..http_request import HttpRequest, File
 
 

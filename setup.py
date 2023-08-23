@@ -27,7 +27,7 @@ setup(
     packages=['dataclass_rest', 'dataclass_rest.http'],
     install_requires=[
         'dataclasses;python_version<"3.7"',
-        'dataclass-factory',
+        'adaptix',
         'typing_extensions;python_version<"3.8"',
     ],
     package_data={

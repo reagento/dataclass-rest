@@ -2,16 +2,11 @@ from typing import (
     Protocol, Any, Optional, Callable, Type, runtime_checkable, TypeVar,
 )
 
-from dataclass_factory import Schema
-
 from .http_request import HttpRequest
 
 
 @runtime_checkable
 class ClientMethodProtocol(Protocol):
-    def get_query_params_schema(self) -> Optional[Schema]:
-        raise NotImplementedError
-
     def get_query_params_type(self) -> Type:
         raise NotImplementedError
 

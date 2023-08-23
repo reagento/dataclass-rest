@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional, List
 
-from dataclass_factory import Factory, NameStyle, Schema
+from adaptix import Retort, name_mapping, NameStyle
 
 from dataclass_rest import get, post, delete, File
 from dataclass_rest.http.requests import RequestsClient
@@ -22,8 +22,10 @@ class RealClient(RequestsClient):
             base_url="https://jsonplaceholder.typicode.com/",
         )
 
-    def _init_request_body_factory(self) -> Factory:
-        return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
+    def _init_request_body_factory(self) -> Retort:
+        return Retort(recipe=[
+            name_mapping(name_style=NameStyle.CAMEL),
+        ])
 
     @get("todos/{id}")
     def get_todo(self, id: str) -> Todo:
@@ -32,11 +34,6 @@ class RealClient(RequestsClient):
     @get("todos")
     def list_todos(self, user_id: Optional[int]) -> List[Todo]:
         pass
-
-    @list_todos.query_params_schema
-    def list_todos(self) -> Optional[Schema]:
-        # here we can customize Schema generation for query params
-        return None
 
     @delete("todos/{id}")
     def delete_todo(self, id: int):
