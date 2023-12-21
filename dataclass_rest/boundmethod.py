@@ -31,9 +31,6 @@ class BoundMethod(ClientMethodProtocol, ABC):
         )
 
     def _get_url(self, args) -> str:
-        if isinstance(self.method_spec.url_template, str):
-            return self.method_spec.url_template.format(**args)
-
         args.pop("self")
         return self.method_spec.url_template(**args)
 
