@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional, Callable, Union
 
 from .boundmethod import BoundMethod
 from .method import Method
@@ -7,7 +7,7 @@ from .parse_func import parse_func, DEFAULT_BODY_PARAM
 
 
 def rest(
-        url_template: str,
+        url_template: Union[str | Callable[..., str]],
         *,
         method: str,
         body_name: str = DEFAULT_BODY_PARAM,

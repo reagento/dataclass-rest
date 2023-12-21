@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from inspect import getcallargs
+from inspect import getcallargs, getfullargspec
 from logging import getLogger
 from typing import Dict, Any, Callable, Optional, NoReturn, Type
 
@@ -7,6 +7,7 @@ from .client_protocol import ClientProtocol, ClientMethodProtocol
 from .exceptions import MalformedResponse
 from .http_request import HttpRequest, File
 from .methodspec import MethodSpec
+from .parse_func import get_url_params, create_query_params_type
 
 logger = getLogger(__name__)
 
@@ -30,7 +31,11 @@ class BoundMethod(ClientMethodProtocol, ABC):
         )
 
     def _get_url(self, args) -> str:
-        return self.method_spec.url_template.format(**args)
+        if isinstance(self.method_spec.url_template, str):
+            return self.method_spec.url_template.format(**args)
+
+        args.pop("self")
+        return self.method_spec.url_template(**args)
 
     def _get_body(self, args) -> Any:
         python_body = args.get(self.method_spec.body_param_name)
@@ -39,8 +44,15 @@ class BoundMethod(ClientMethodProtocol, ABC):
         )
 
     def _get_query_params(self, args) -> Any:
+        query_params_type = self.method_spec.query_params_type
+
+        if not isinstance(self.method_spec.url_template, str):
+            url_params = get_url_params(self.method_spec.url_template, args)
+            skipped_params = url_params + self.method_spec.file_param_names + [self.method_spec.body_param_name]
+            query_params_type = create_query_params_type(getfullargspec(self.method_spec.func), self.method_spec.func, skipped_params)
+
         return self.client.request_args_factory.dump(
-            args, self.method_spec.query_params_type,
+            args, query_params_type,
         )
 
     def _get_files(self, args) -> Dict[str, File]:
