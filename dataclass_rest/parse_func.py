@@ -1,6 +1,6 @@
 import string
-from inspect import getfullargspec, FullArgSpec, isclass, getcallargs
-from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union, Optional
+from inspect import getfullargspec, FullArgSpec, isclass
+from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
 
 from .http_request import File
 from .methodspec import MethodSpec
@@ -8,15 +8,8 @@ from .methodspec import MethodSpec
 DEFAULT_BODY_PARAM = "body"
 
 
-def get_url_params(url_template: Union[str | Callable[..., str]], callback_kwargs: Optional[dict[str, Any]] = None) -> List[str]:
-    if not isinstance(url_template, str) and not callback_kwargs:
-        return []
-
-    if not isinstance(url_template, str) and callback_kwargs:
-        parsed_format = string.Formatter().parse(url_template(callback_kwargs))
-        return [x[1] for x in parsed_format]
-
-    parsed_format = string.Formatter().parse(url_template)
+def get_url_params(url_template: Callable[..., str], callback_kwargs: dict[str, Any]) -> List[str]:
+    parsed_format = string.Formatter().parse(url_template(callback_kwargs))
     return [x[1] for x in parsed_format]
 
 
@@ -61,15 +54,15 @@ def get_file_params(spec):
 def parse_func(
         func: Callable,
         method: str,
-        url_template: Union[str | Callable[..., str]],
+        url_template: Callable[..., str],
         additional_params: Dict[str, Any],
         is_json_request: bool,
         body_param_name: str,
 ) -> MethodSpec:
     spec = getfullargspec(func)
-    url_params = get_url_params(url_template)
     file_params = get_file_params(spec)
-    skipped_params = url_params + file_params + [body_param_name] if url_params else []
+    skipped_params = []
+
     return MethodSpec(
         func=func,
         http_method=method,
