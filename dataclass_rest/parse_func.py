@@ -1,6 +1,6 @@
 import string
 from inspect import getfullargspec, FullArgSpec, isclass
-from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
+from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union
 
 from .http_request import File
 from .methodspec import MethodSpec
@@ -8,9 +8,14 @@ from .methodspec import MethodSpec
 DEFAULT_BODY_PARAM = "body"
 
 
-def get_url_params(url_template: Callable[..., str], callback_kwargs: dict[str, Any]) -> List[str]:
-    parsed_format = string.Formatter().parse(url_template(callback_kwargs))
-    return [x[1] for x in parsed_format]
+def get_url_params(url_template: Union[str, Callable[..., str]]) -> List[str]:
+    is_string = isinstance(url_template, str)
+
+    if is_string:
+        parsed_format = string.Formatter().parse(url_template)
+        return [x[1] for x in parsed_format]
+    else:
+        return getfullargspec(url_template).args
 
 
 def create_query_params_type(
@@ -54,19 +59,40 @@ def get_file_params(spec):
 def parse_func(
         func: Callable,
         method: str,
-        url_template: Callable[..., str],
+        url_template: Union[str, Callable[..., str]],
         additional_params: Dict[str, Any],
         is_json_request: bool,
         body_param_name: str,
 ) -> MethodSpec:
     spec = getfullargspec(func)
     file_params = get_file_params(spec)
-    skipped_params = []
+
+    is_string_url_template = isinstance(url_template, str)
+    url_template_func = url_template.format if is_string_url_template else url_template
+
+    try:
+        url_template_func_arg_spec = getfullargspec(url_template_func)
+
+        url_template_func_args = set(url_template_func_arg_spec.args)
+        diff_kwargs = set(spec.kwonlyargs).difference(url_template_func_args)
+        diff_args = set(spec.args).difference(url_template_func_args)
+
+        url_template_func_pop_args = diff_args.union(diff_kwargs)
+    except TypeError as _exc:
+        url_template_func_arg_spec = None
+        url_template_func_pop_args = None
+
+    url_params = get_url_params(url_template if is_string_url_template else url_template_func)
+    skipped_params = url_params + file_params + [body_param_name]
 
     return MethodSpec(
         func=func,
+        func_arg_spec=spec,
         http_method=method,
-        url_template=url_template,
+        url_template=url_template if is_string_url_template else None,
+        url_template_func=url_template_func,
+        url_template_func_arg_spec=url_template_func_arg_spec,
+        url_template_func_pop_args=url_template_func_pop_args,
         query_params_type=create_query_params_type(spec, func, skipped_params),
         body_type=create_body_type(spec, body_param_name),
         response_type=create_response_type(spec),

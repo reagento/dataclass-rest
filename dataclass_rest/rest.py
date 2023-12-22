@@ -7,7 +7,7 @@ from .parse_func import parse_func, DEFAULT_BODY_PARAM
 
 
 def rest(
-        url_template: Union[str | Callable[..., str]],
+        url_template: Union[str, Callable[..., str]],
         *,
         method: str,
         body_name: str = DEFAULT_BODY_PARAM,
@@ -19,12 +19,10 @@ def rest(
         additional_params = {}
 
     def dec(func: Callable) -> Method:
-        new_url_template = (lambda *args, **kwargs: url_template) if isinstance(url_template, str) else url_template
-
         method_spec = parse_func(
             func=func,
             body_param_name=body_name,
-            url_template=new_url_template,
+            url_template=url_template,
             method=method,
             additional_params=additional_params,
             is_json_request=send_json,
