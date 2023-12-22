@@ -1,6 +1,6 @@
 import string
 from inspect import getfullargspec, FullArgSpec, isclass
-from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union
+from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union, Optional
 
 from .http_request import File
 from .methodspec import MethodSpec
@@ -8,14 +8,14 @@ from .methodspec import MethodSpec
 DEFAULT_BODY_PARAM = "body"
 
 
-def get_url_params(url_template: Union[str, Callable[..., str]]) -> List[str]:
+def get_url_params(url_template: Union[str, Callable[..., str]], arg_spec: Optional[FullArgSpec] = None) -> List[str]:
     is_string = isinstance(url_template, str)
 
     if is_string:
         parsed_format = string.Formatter().parse(url_template)
         return [x[1] for x in parsed_format]
     else:
-        return getfullargspec(url_template).args
+        return arg_spec.args
 
 
 def create_query_params_type(
@@ -82,7 +82,11 @@ def parse_func(
         url_template_func_arg_spec = None
         url_template_func_pop_args = None
 
-    url_params = get_url_params(url_template if is_string_url_template else url_template_func)
+    if is_string_url_template:
+        url_params = get_url_params(url_template)
+    else:
+        url_params = get_url_params(url_template_func, url_template_func_arg_spec)
+
     skipped_params = url_params + file_params + [body_param_name]
 
     return MethodSpec(
