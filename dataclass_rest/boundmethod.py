@@ -34,7 +34,7 @@ class BoundMethod(ClientMethodProtocol, ABC):
     def _get_url(self, args) -> str:
         args = copy.copy(args)
 
-        if not self.method_spec.url_template_func_arg_spec:
+        if not self.method_spec.url_template_func_pop_args:
             return self.method_spec.url_template_func(**args)
 
         for arg in self.method_spec.url_template_func_pop_args:

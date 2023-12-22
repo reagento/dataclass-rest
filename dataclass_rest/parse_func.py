@@ -91,11 +91,9 @@ def parse_func(
 
     return MethodSpec(
         func=func,
-        func_arg_spec=spec,
         http_method=method,
         url_template=url_template if is_string_url_template else None,
         url_template_func=url_template_func,
-        url_template_func_arg_spec=url_template_func_arg_spec,
         url_template_func_pop_args=url_template_func_pop_args,
         query_params_type=create_query_params_type(spec, func, skipped_params),
         body_type=create_body_type(spec, body_param_name),

@@ -1,4 +1,3 @@
-from inspect import FullArgSpec
 from typing import Any, Dict, Type, Callable, List, Optional
 
 
@@ -6,10 +5,8 @@ class MethodSpec:
     def __init__(
             self,
             func: Callable,
-            func_arg_spec: FullArgSpec,
             url_template: Optional[str],
             url_template_func: Optional[Callable[..., str]],
-            url_template_func_arg_spec: Optional[FullArgSpec],
             url_template_func_pop_args: Optional[List[str]],
             http_method: str,
             response_type: Type,
@@ -32,5 +29,3 @@ class MethodSpec:
         self.additional_params = additional_params
         self.is_json_request = is_json_request
         self.file_param_names = file_param_names
-        self.func_arg_spec = func_arg_spec
-        self.url_template_func_arg_spec = url_template_func_arg_spec
