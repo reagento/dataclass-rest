@@ -1,6 +1,6 @@
 import string
 from inspect import getfullargspec, FullArgSpec, isclass
-from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union, Optional
+from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict, Union
 
 from .http_request import File
 from .methodspec import MethodSpec
@@ -8,14 +8,9 @@ from .methodspec import MethodSpec
 DEFAULT_BODY_PARAM = "body"
 
 
-def get_url_params(url_template: Union[str, Callable[..., str]], arg_spec: Optional[FullArgSpec] = None) -> List[str]:
-    is_string = isinstance(url_template, str)
-
-    if is_string:
-        parsed_format = string.Formatter().parse(url_template)
-        return [x[1] for x in parsed_format]
-    else:
-        return arg_spec.args
+def get_url_params_from_string(url_template: str) -> List[str]:
+    parsed_format = string.Formatter().parse(url_template)
+    return [x[1] for x in parsed_format]
 
 
 def create_query_params_type(
@@ -70,7 +65,9 @@ def parse_func(
     is_string_url_template = isinstance(url_template, str)
     url_template_func = url_template.format if is_string_url_template else url_template
 
-    try:
+    url_template_func_pop_args = None
+
+    if not is_string_url_template:
         url_template_func_arg_spec = getfullargspec(url_template_func)
 
         url_template_func_args = set(url_template_func_arg_spec.args)
@@ -78,14 +75,9 @@ def parse_func(
         diff_args = set(spec.args).difference(url_template_func_args)
 
         url_template_func_pop_args = diff_args.union(diff_kwargs)
-    except TypeError as _exc:
-        url_template_func_arg_spec = None
-        url_template_func_pop_args = None
-
-    if is_string_url_template:
-        url_params = get_url_params(url_template)
+        url_params = url_template_func_arg_spec.args
     else:
-        url_params = get_url_params(url_template_func, url_template_func_arg_spec)
+        url_params = get_url_params_from_string(url_template)
 
     skipped_params = url_params + file_params + [body_param_name]
 
