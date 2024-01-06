@@ -69,13 +69,14 @@ def parse_func(
 
     if not is_string_url_template:
         url_template_func_arg_spec = getfullargspec(url_template_func)
+        url_template_func_args = url_template_func_arg_spec.args
 
-        url_template_func_args = set(url_template_func_arg_spec.args)
-        diff_kwargs = set(spec.kwonlyargs).difference(url_template_func_args)
-        diff_args = set(spec.args).difference(url_template_func_args)
+        url_template_func_args_set = set(url_template_func_args)
+        diff_kwargs = set(spec.kwonlyargs).difference(url_template_func_args_set)
+        diff_args = set(spec.args).difference(url_template_func_args_set)
 
         url_template_func_pop_args = diff_args.union(diff_kwargs)
-        url_params = url_template_func_arg_spec.args
+        url_params = url_template_func_args
     else:
         url_params = get_url_params_from_string(url_template)
 
