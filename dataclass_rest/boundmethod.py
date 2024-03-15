@@ -1,3 +1,5 @@
+import copy
+
 from abc import ABC, abstractmethod
 from inspect import getcallargs
 from logging import getLogger
@@ -30,7 +32,15 @@ class BoundMethod(ClientMethodProtocol, ABC):
         )
 
     def _get_url(self, args) -> str:
-        return self.method_spec.url_template.format(**args)
+        args = copy.copy(args)
+
+        if not self.method_spec.url_template_func_pop_args:
+            return self.method_spec.url_template_func(**args)
+
+        for arg in self.method_spec.url_template_func_pop_args:
+            args.pop(arg)
+
+        return self.method_spec.url_template_func(**args)
 
     def _get_body(self, args) -> Any:
         python_body = args.get(self.method_spec.body_param_name)

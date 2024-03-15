@@ -1,11 +1,13 @@
-from typing import Any, Dict, Type, Callable, List
+from typing import Any, Dict, Type, Callable, List, Optional
 
 
 class MethodSpec:
     def __init__(
             self,
             func: Callable,
-            url_template: str,
+            url_template: Optional[str],
+            url_template_func: Optional[Callable[..., str]],
+            url_template_func_pop_args: Optional[List[str]],
             http_method: str,
             response_type: Type,
             body_param_name: str,
@@ -17,6 +19,8 @@ class MethodSpec:
     ):
         self.func = func
         self.url_template = url_template
+        self.url_template_func = url_template_func
+        self.url_template_func_pop_args = url_template_func_pop_args
         self.http_method = http_method
         self.response_type = response_type
         self.body_param_name = body_param_name
