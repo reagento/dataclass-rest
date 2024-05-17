@@ -2,5 +2,7 @@ adaptix
 typing_extensions
 aiohttp
 requests
-nose2
+requests-mock
 mypy
+pytest
+pytest-asyncio
