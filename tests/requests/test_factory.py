@@ -46,8 +46,9 @@ def test_body(session, mocker):
             raise NotImplementedError()
 
     mocker.patch(
-        url="http://example.com/post/",
+        url="http://example.com/post/?LONG.PARAM=hello",
         text="""{"int-param": 1, "selection": "TWO"}""",
+        complete_qs=True,
     )
     client = Api(base_url="http://example.com", session=session)
     result = client.post_x(
@@ -56,4 +57,3 @@ def test_body(session, mocker):
     assert result == ResponseBody(int_param=1, selection=Selection.TWO)
     assert mocker.called_once
     assert mocker.request_history[0].json() == {"intParam": 42, "selection": "ONE"}
-    assert mocker.request_history[0].query == "LONG.PARAM=hello"

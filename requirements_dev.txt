@@ -3,7 +3,6 @@ typing_extensions
 aiohttp
 requests
 requests-mock
-nose2
 mypy
 pytest
 pytest-asyncio
