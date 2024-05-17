@@ -45,11 +45,11 @@ class RealAsyncClient(AiohttpClient):
 
     @post("todos")
     async def create_todo(self, body: Todo) -> Todo:
-        """Созадем Todo"""
+        """Создаем Todo"""
 
     @get("https://httpbin.org/get")
     def get_httpbin(self) -> Any:
-        """Используемый другой base_url"""
+        """Используем другой base_url"""
 
     @post("https://httpbin.org/post")
     def upload_image(self, file: File):
