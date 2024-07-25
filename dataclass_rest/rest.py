@@ -1,21 +1,20 @@
-from typing import Any, Dict, Optional, Callable, ParamSpec, TypeVar
+from typing import Any, Callable, Dict, Optional, TypeVar, cast
 
 from .boundmethod import BoundMethod
 from .method import Method
-from .parse_func import parse_func, DEFAULT_BODY_PARAM
+from .parse_func import DEFAULT_BODY_PARAM, parse_func
 
-_P = ParamSpec("_P")
-_RT = TypeVar("_RT")
+_Func = TypeVar("_Func", bound=Callable[..., Any])
 
 
 def rest(
-        url_template: str,
-        *,
-        method: str,
-        body_name: str = DEFAULT_BODY_PARAM,
-        additional_params: Optional[Dict[str, Any]] = None,
-        method_class: Optional[Callable[..., BoundMethod]] = None,
-        send_json: bool = True,
+    url_template: str,
+    *,
+    method: str,
+    body_name: str = DEFAULT_BODY_PARAM,
+    additional_params: Optional[Dict[str, Any]] = None,
+    method_class: Optional[Callable[..., BoundMethod]] = None,
+    send_json: bool = True,
 ) -> Callable[[Callable], Method]:
     if additional_params is None:
         additional_params = {}
@@ -34,12 +33,12 @@ def rest(
     return dec
 
 
-def _rest_method(func: Callable[_P, _RT], method: str) -> Callable[_P, _RT]:
-    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _RT:
+def _rest_method(func: _Func, method: str) -> _Func:
+    def wrapper(*args, **kwargs):
         return func(*args, **kwargs, method=method)
 
-    return wrapper
-    
+    return cast(_Func, wrapper)
+
 
 get = _rest_method(rest, method="GET")
 post = _rest_method(rest, method="POST")
