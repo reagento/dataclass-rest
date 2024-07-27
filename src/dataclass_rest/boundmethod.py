@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from inspect import getcallargs
 from logging import getLogger
-from typing import Dict, Any, Callable, Optional, NoReturn, Type
+from typing import Any, Callable, Dict, NoReturn, Optional, Type
 
-from .client_protocol import ClientProtocol, ClientMethodProtocol
-from .exceptions import MalformedResponse
-from .http_request import HttpRequest, File
+from .client_protocol import ClientMethodProtocol, ClientProtocol
+from .exceptions import ClientLibraryError, MalformedResponse
+from .http_request import File, HttpRequest
 from .methodspec import MethodSpec
 
 logger = getLogger(__name__)
@@ -74,7 +74,7 @@ class BoundMethod(ClientMethodProtocol, ABC):
         raise NotImplementedError
 
     def _on_error_default(self, response: Any) -> Any:
-        raise RuntimeError  # TODO exceptions
+        raise ClientLibraryError
 
 
 class SyncMethod(BoundMethod):
@@ -90,8 +90,7 @@ class SyncMethod(BoundMethod):
         request = self._pre_process_request(request)
         raw_response = self.client.do_request(request)
         response = self._pre_process_response(raw_response)
-        response = self._post_process_response(response)
-        return response
+        return self._post_process_response(response)
 
     def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
         return request
@@ -135,8 +134,7 @@ class AsyncMethod(BoundMethod):
         raw_response = await self.client.do_request(request)
         response = await self._pre_process_response(raw_response)
         await self._release_raw_response(raw_response)
-        response = await self._post_process_response(response)
-        return response
+        return await self._post_process_response(response)
 
     async def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
         return request
@@ -162,7 +160,7 @@ class AsyncMethod(BoundMethod):
             raise MalformedResponse from e
 
     async def _on_error_default(self, response: Any) -> NoReturn:
-        raise RuntimeError  # TODO exceptions
+        raise ClientLibraryError
 
     @abstractmethod
     async def _response_body(self, response: Any) -> Any:

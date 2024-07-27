@@ -4,15 +4,22 @@ from typing import Any, Optional
 
 from aiohttp import FormData
 from aiohttp.client import (
-    ClientResponse, ClientSession, ClientError as AioHttpClientError,
+    ClientError as AioHttpClientError,
+)
+from aiohttp.client import (
+    ClientResponse,
+    ClientSession,
 )
 
-from ..base_client import BaseClient
-from ..boundmethod import AsyncMethod
-from ..exceptions import (
-    ClientError, ClientLibraryError, ServerError, MalformedResponse,
+from dataclass_rest.base_client import BaseClient
+from dataclass_rest.boundmethod import AsyncMethod
+from dataclass_rest.exceptions import (
+    ClientError,
+    ClientLibraryError,
+    MalformedResponse,
+    ServerError,
 )
-from ..http_request import HttpRequest
+from dataclass_rest.http_request import HttpRequest
 
 
 class AiohttpMethod(AsyncMethod):

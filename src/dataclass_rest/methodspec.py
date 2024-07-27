@@ -1,10 +1,11 @@
-from typing import Any, Dict, Type, Callable, List
+from typing import Any, Callable, Dict, List, Type
 
 
 class MethodSpec:
     def __init__(
             self,
             func: Callable,
+            *,
             url_template: str,
             http_method: str,
             response_type: Type,

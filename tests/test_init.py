@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 import pytest
-from adaptix import Retort, NameStyle, name_mapping
+from adaptix import NameStyle, Retort, name_mapping
 from requests import Session
 
 from dataclass_rest import get
@@ -17,7 +17,10 @@ class Todo:
 def test_sync():
     class RealClient(RequestsClient):
         def __init__(self):
-            super().__init__("https://jsonplaceholder.typicode.com/", Session())
+            super().__init__(
+                "https://jsonplaceholder.typicode.com/",
+                Session(),
+            )
 
         def _init_request_body_factory(self) -> Retort:
             return Retort(recipe=[

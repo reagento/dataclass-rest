@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from adaptix import Retort, NameStyle, name_mapping
+from adaptix import NameStyle, Retort, name_mapping
 
 from dataclass_rest import patch
 from dataclass_rest.http.requests import RequestsClient
@@ -43,7 +43,7 @@ def test_body(session, mocker):
 
         @patch("/post/")
         def post_x(self, long_param: str, body: RequestBody) -> ResponseBody:
-            raise NotImplementedError()
+            raise NotImplementedError
 
     mocker.patch(
         url="http://example.com/post/?LONG.PARAM=hello",
@@ -52,8 +52,11 @@ def test_body(session, mocker):
     )
     client = Api(base_url="http://example.com", session=session)
     result = client.post_x(
-        long_param="hello", body=RequestBody(int_param=42, selection=Selection.ONE),
+        long_param="hello",
+        body=RequestBody(int_param=42, selection=Selection.ONE),
     )
     assert result == ResponseBody(int_param=1, selection=Selection.TWO)
     assert mocker.called_once
-    assert mocker.request_history[0].json() == {"intParam": 42, "selection": "ONE"}
+
+    resp = mocker.request_history[0].json()
+    assert resp == {"intParam": 42, "selection": "ONE"}
