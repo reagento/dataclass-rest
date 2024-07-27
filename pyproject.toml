@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=66.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "dataclass_rest"
+version = "0.4"
+readme = "README.md"
+authors = [
+    { name = "Andrey Tikhonov", email = "17@itishka.org" },
+]
+license = { text = "Apache-2.0" }
+description = "An utility for writing simple clients for REST like APIs"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "adaptix",
+]
+
+[project.urls]
+"Source" = "https://github.com/reagento/dataclass-rest"
+"Homepage" = "https://github.com/reagento/dataclass-rest"
+"Bug Tracker" = "https://github.com/reagento/dataclass-rest/issues"
+
+

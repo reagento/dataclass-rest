@@ -1,6 +1,6 @@
 import string
-from inspect import getfullargspec, FullArgSpec, isclass
-from typing import Callable, List, Sequence, Any, Type, TypedDict, Dict
+from inspect import FullArgSpec, getfullargspec, isclass
+from typing import Any, Callable, Dict, List, Sequence, Type, TypedDict
 
 from .http_request import File
 from .methodspec import MethodSpec
@@ -53,6 +53,7 @@ def get_file_params(spec):
 
 def parse_func(
         func: Callable,
+        *,
         method: str,
         url_template: str,
         additional_params: Dict[str, Any],

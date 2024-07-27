@@ -25,7 +25,7 @@ class Method:
                 f"No type for bound method is specified. "
                 f"Provide either `{owner.__name__}.method_class` attribute or "
                 f"`method_class=` argument for decorator "
-                f"on your `{name}` method"
+                f"on your `{name}` method",
             )
 
     def __get__(

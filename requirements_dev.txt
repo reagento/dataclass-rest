@@ -6,3 +6,5 @@ requests-mock
 mypy
 pytest
 pytest-asyncio
+
+ruff==0.5.*

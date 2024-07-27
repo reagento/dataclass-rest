@@ -1,0 +1,42 @@
+line-length = 79
+target-version="py38"
+src = ["src"]
+
+include = ["src/**.py", "tests/**.py"]
+exclude = ["src/dishka/_adaptix/**"]
+
+lint.select = [
+"ALL"
+]
+lint.ignore = [
+   "ARG",
+   "ANN",
+   "D",
+   "EM101",
+   "EM102",
+   "PT001",
+   "PT023",
+   "SIM108",
+   "SIM114",
+   "TRY003",
+   "PLW2901",
+   "RET505",
+   "RET506",
+   "PLR0913",
+   "UP038",
+   "TCH001",
+   "FA100",
+   # tempraty disabled
+   "PGH005",
+   "PLR2004",
+   "N818", # compatibility issue
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["TID252", "PLR2004", "S101", "A002"]
+
+[lint.isort]
+no-lines-before = ["local-folder"]
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
