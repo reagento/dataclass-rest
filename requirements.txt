@@ -1,6 +1,0 @@
-adaptix
-typing_extensions
-aiohttp
-requests
-nose2
-mypy

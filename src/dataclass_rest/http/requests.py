@@ -2,14 +2,17 @@ import urllib.parse
 from json import JSONDecodeError
 from typing import Any, Optional, Tuple
 
-from requests import Session, Response, RequestException
+from requests import RequestException, Response, Session
 
-from ..base_client import BaseClient
-from ..boundmethod import SyncMethod
-from ..exceptions import (
-    ClientLibraryError, ClientError, ServerError, MalformedResponse,
+from dataclass_rest.base_client import BaseClient
+from dataclass_rest.boundmethod import SyncMethod
+from dataclass_rest.exceptions import (
+    ClientError,
+    ClientLibraryError,
+    MalformedResponse,
+    ServerError,
 )
-from ..http_request import HttpRequest, File
+from dataclass_rest.http_request import File, HttpRequest
 
 
 class RequestsMethod(SyncMethod):

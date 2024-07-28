@@ -102,3 +102,40 @@ To set same behavior for all methods inherit from BoundMethod class, override `_
 ### Other params
 
 You can use different body argument name if you want. Just pass `body_name` to the decorator.
+
+
+### Special cases
+
+#### `None` in query params
+
+By default, AioHTTP doesn't skip query params, you can customize that overriding `_pre_process_request` in Method class
+
+```python
+class NoneAwareAiohttpMethod(AiohttpMethod):
+    async def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
+        request.query_params = {
+            k: v for k, v in request.query_params.items() if v is not None
+        }
+        return request
+
+
+class Client(AiohttpClient):
+    method_class = NoneAwareAiohttpMethod
+```
+
+#### Handling `No content`
+
+By default, en each method json response is expected. Sometime you expect no content from server. Especially for 204.
+You can handle it by overriding `_response_body` method, e.g.:
+
+```python
+class NoneAwareRequestsMethod(RequestsMethod):
+    def _response_body(self, response: Response) -> Any:
+        if response.status_code == http.HTTPStatus.NO_CONTENT:
+            return None
+        return super()._response_body(response)
+
+
+class Client(RequestsClient):
+    method_class = NoneAwareRequestsMethod
+```
