@@ -62,6 +62,13 @@ def get_file_params(spec):
     ]
 
 
+def get_url_params_from_callable(
+    url_template: Callable[..., str],
+) -> List[str]:
+    url_template_func_arg_spec = getfullargspec(url_template)
+    return url_template_func_arg_spec.args
+
+
 def parse_func(
     func: Callable,
     method: str,
@@ -78,11 +85,11 @@ def parse_func(
         url_template.format if is_string_url_template else url_template
     )
 
-    if not is_string_url_template:
-        url_template_func_arg_spec = getfullargspec(url_template_callable)
-        url_params = url_template_func_arg_spec.args
-    else:
-        url_params = get_url_params_from_string(url_template)
+    url_params = (
+        get_url_params_from_string(url_template)
+        if is_string_url_template
+        else get_url_params_from_callable(url_template)
+    )
 
     skipped_params = url_params + file_params + [body_param_name]
 
