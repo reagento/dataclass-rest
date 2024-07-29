@@ -46,15 +46,18 @@ def test_query_params(session: requests.Session, mocker: requests_mock.Mocker):
 
     mocker.post(
         url="http://example.com/post/x?",
-        text="[0]", complete_qs=True,
+        text="[0]",
+        complete_qs=True,
     )
     mocker.post(
         url="http://example.com/post/x?param=1",
-        text="[1]", complete_qs=True,
+        text="[1]",
+        complete_qs=True,
     )
     mocker.post(
         url="http://example.com/post/x?param=2",
-        text="[1,2]", complete_qs=True,
+        text="[1,2]",
+        complete_qs=True,
     )
     client = Api(base_url="http://example.com", session=session)
     assert client.post_x("x", None) == [0]
@@ -76,7 +79,8 @@ def test_body(session: requests.Session, mocker: requests_mock.Mocker):
 
     mocker.post(
         url="http://example.com/post/",
-        text="null", complete_qs=True,
+        text="null",
+        complete_qs=True,
     )
     client = Api(base_url="http://example.com", session=session)
     assert client.post_x(RequestBody(x=1, y="test")) is None

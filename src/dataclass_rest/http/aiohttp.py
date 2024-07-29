@@ -48,9 +48,9 @@ class AiohttpClient(BaseClient):
     method_class = AiohttpMethod
 
     def __init__(
-            self,
-            base_url: str,
-            session: Optional[ClientSession] = None,
+        self,
+        base_url: str,
+        session: Optional[ClientSession] = None,
     ):
         super().__init__()
         self.session = session or ClientSession()
@@ -68,7 +68,8 @@ class AiohttpClient(BaseClient):
             for name, file in request.files.items():
                 data.add_field(
                     name,
-                    filename=file.filename, content_type=file.content_type,
+                    filename=file.filename,
+                    content_type=file.content_type,
                     value=file.contents,
                 )
         try:

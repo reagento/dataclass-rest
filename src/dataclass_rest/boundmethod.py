@@ -1,4 +1,3 @@
-import copy
 
 from abc import ABC, abstractmethod
 from inspect import getcallargs
@@ -15,11 +14,11 @@ logger = getLogger(__name__)
 
 class BoundMethod(ClientMethodProtocol, ABC):
     def __init__(
-            self,
-            name: str,
-            method_spec: MethodSpec,
-            client: ClientProtocol,
-            on_error: Optional[Callable[[Any], Any]],
+        self,
+        name: str,
+        method_spec: MethodSpec,
+        client: ClientProtocol,
+        on_error: Optional[Callable[[Any], Any]],
     ):
         self.name = name
         self.method_spec = method_spec
@@ -28,29 +27,31 @@ class BoundMethod(ClientMethodProtocol, ABC):
 
     def _apply_args(self, *args, **kwargs) -> Dict:
         return getcallargs(
-            self.method_spec.func, self.client, *args, **kwargs,
+            self.method_spec.func,
+            self.client,
+            *args,
+            **kwargs,
         )
 
     def _get_url(self, args) -> str:
-        args = copy.copy(args)
-
-        if not self.method_spec.url_template_func_pop_args:
-            return self.method_spec.url_template_func(**args)
-
-        for arg in self.method_spec.url_template_func_pop_args:
-            args.pop(arg)
-
-        return self.method_spec.url_template_func(**args)
+        args = {
+            arg: value
+            for arg, value in args.items()
+            if arg in self.method_spec.url_params
+        }
+        return self.method_spec.url_template(**args)
 
     def _get_body(self, args) -> Any:
         python_body = args.get(self.method_spec.body_param_name)
         return self.client.request_body_factory.dump(
-            python_body, self.method_spec.body_type,
+            python_body,
+            self.method_spec.body_type,
         )
 
     def _get_query_params(self, args) -> Any:
         return self.client.request_args_factory.dump(
-            args, self.method_spec.query_params_type,
+            args,
+            self.method_spec.query_params_type,
         )
 
     def _get_files(self, args) -> Dict[str, File]:
@@ -61,11 +62,11 @@ class BoundMethod(ClientMethodProtocol, ABC):
         }
 
     def _create_request(
-            self,
-            url: str,
-            query_params: Any,
-            files: Dict[str, File],
-            data: Any,
+        self,
+        url: str,
+        query_params: Any,
+        files: Dict[str, File],
+        data: Any,
     ) -> HttpRequest:
         return HttpRequest(
             method=self.method_spec.http_method,

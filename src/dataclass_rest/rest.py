@@ -2,13 +2,13 @@ from typing import Any, Callable, Dict, Optional, TypeVar, cast
 
 from .boundmethod import BoundMethod
 from .method import Method
-from .parse_func import DEFAULT_BODY_PARAM, parse_func
+from .parse_func import DEFAULT_BODY_PARAM, UrlTemplate, parse_func
 
 _Func = TypeVar("_Func", bound=Callable[..., Any])
 
 
 def rest(
-    url_template: str,
+    url_template: UrlTemplate,
     *,
     method: str,
     body_name: str = DEFAULT_BODY_PARAM,

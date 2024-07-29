@@ -7,9 +7,9 @@ from .methodspec import MethodSpec
 
 class Method:
     def __init__(
-            self,
-            method_spec: MethodSpec,
-            method_class: Optional[Callable[..., BoundMethod]] = None,
+        self,
+        method_spec: MethodSpec,
+        method_class: Optional[Callable[..., BoundMethod]] = None,
     ):
         self.name = method_spec.func.__name__
         self.method_spec = method_spec
@@ -29,7 +29,9 @@ class Method:
             )
 
     def __get__(
-            self, instance: Optional[ClientProtocol], objtype=None,
+        self,
+        instance: Optional[ClientProtocol],
+        objtype=None,
     ) -> BoundMethod:
         return self.method_class(
             name=self.name,
