@@ -12,6 +12,7 @@ def session():
 @pytest.fixture
 def mocker(session):
     with requests_mock.Mocker(
-            session=session, case_sensitive=True,
+        session=session,
+        case_sensitive=True,
     ) as session_mock:
         yield session_mock

@@ -27,19 +27,25 @@ class ResponseBody:
 def test_body(session, mocker):
     class Api(RequestsClient):
         def _init_request_body_factory(self) -> Retort:
-            return Retort(recipe=[
-                name_mapping(name_style=NameStyle.CAMEL),
-            ])
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.CAMEL),
+                ],
+            )
 
         def _init_request_args_factory(self) -> Retort:
-            return Retort(recipe=[
-                name_mapping(name_style=NameStyle.UPPER_DOT),
-            ])
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.UPPER_DOT),
+                ],
+            )
 
         def _init_response_body_factory(self) -> Retort:
-            return Retort(recipe=[
-                name_mapping(name_style=NameStyle.LOWER_KEBAB),
-            ])
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.LOWER_KEBAB),
+                ],
+            )
 
         @patch("/post/")
         def post_x(self, long_param: str, body: RequestBody) -> ResponseBody:

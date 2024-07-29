@@ -16,7 +16,6 @@ from dataclass_rest.http_request import File, HttpRequest
 
 
 class RequestsMethod(SyncMethod):
-
     def _on_error_default(self, response: Response) -> Any:
         if 400 <= response.status_code < 500:
             raise ClientError(response.status_code)
@@ -39,9 +38,9 @@ class RequestsClient(BaseClient):
     method_class = RequestsMethod
 
     def __init__(
-            self,
-            base_url: str,
-            session: Optional[Session] = None,
+        self,
+        base_url: str,
+        session: Optional[Session] = None,
     ):
         super().__init__()
         self.session = session or Session()

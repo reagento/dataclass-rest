@@ -68,7 +68,32 @@ class RealClient(RequestsClient):
 
     @post("todos")
     def create_todo(self, body: Todo) -> Todo:
-        """Создаем Todo"""
+        pass
+```
+
+You can use Callable ```(...) -> str``` as the url source, 
+all parameters passed to the client method can be obtained inside the Callable
+
+```python
+from requests import Session
+from dataclass_rest import get
+from dataclass_rest.http.requests import RequestsClient
+
+def url_generator(todo_id: int) -> str:
+    return f"/todos/{todo_id}/"
+
+
+class RealClient(RequestsClient):
+    def __init__(self):
+        super().__init__("https://dummyjson.com/", Session())
+
+    @get(url_generator)
+    def todo(self, todo_id: int) -> Todo:
+        pass
+
+
+client = RealClient()
+client.todo(5)
 ```
 
 ## Asyncio

@@ -23,9 +23,11 @@ def test_sync():
             )
 
         def _init_request_body_factory(self) -> Retort:
-            return Retort(recipe=[
-                name_mapping(name_style=NameStyle.CAMEL),
-            ])
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.CAMEL),
+                ],
+            )
 
         @get("todos/{id}")
         def get_todo(self, id: str) -> Todo:
@@ -41,9 +43,11 @@ async def test_async():
             super().__init__("https://jsonplaceholder.typicode.com/")
 
         def _init_request_body_factory(self) -> Retort:
-            return Retort(recipe=[
-                name_mapping(name_style=NameStyle.CAMEL),
-            ])
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.CAMEL),
+                ],
+            )
 
         @get("todos/{id}")
         async def get_todo(self, id: str) -> Todo:
