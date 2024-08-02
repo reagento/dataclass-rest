@@ -69,6 +69,7 @@ class RequestsClient(BaseClient):
                 json=json,
                 params=request.query_params,
                 data=data,
+                headers=request.headers,
                 files=files,
             )
         except RequestException as e:
