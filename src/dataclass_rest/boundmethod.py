@@ -74,6 +74,7 @@ class BoundMethod(ClientMethodProtocol, ABC):
             data=data,
             files=files,
             url=url,
+            headers={},
         )
 
     def get_query_params_type(self) -> Type:

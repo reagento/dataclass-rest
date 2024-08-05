@@ -79,6 +79,7 @@ class AiohttpClient(BaseClient):
                 json=json,
                 data=data,
                 params=request.query_params,
+                headers=request.headers,
             )
         except AioHttpClientError as e:
             raise ClientLibraryError from e
