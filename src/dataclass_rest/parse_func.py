@@ -31,7 +31,7 @@ def create_query_params_type(
 ) -> Type:
     fields = {}
     self_processed = False
-    for x in spec.args:
+    for x in spec.args + spec.kwonlyargs:
         if not self_processed:
             self_processed = True
             continue
