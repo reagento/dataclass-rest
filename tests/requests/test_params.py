@@ -86,3 +86,35 @@ def test_body(session: requests.Session, mocker: requests_mock.Mocker):
     assert client.post_x(RequestBody(x=1, y="test")) is None
     assert mocker.called_once
     assert mocker.request_history[0].json() == {"x": 1, "y": "test"}
+
+
+def test_kwonly_param(session: requests.Session, mocker: requests_mock.Mocker):
+    class Api(RequestsClient):
+        @post("/post/")
+        def post(
+            self,
+            *,
+            body: RequestBody,
+        ) -> None:
+            raise NotImplementedError
+
+        @get("/get/{id}")
+        def get_x(self, *, id: str, param: str = "1") -> List[int]:
+            raise NotImplementedError
+
+    mocker.post(
+        url="http://example.com/post/",
+        text="null",
+        complete_qs=True,
+    )
+    mocker.get(
+        url="http://example.com/get/x?param=1",
+        text="[0]",
+        complete_qs=True,
+    )
+    client = Api(base_url="http://example.com", session=session)
+    assert client.post(body=RequestBody(x=1, y="test")) is None
+    assert mocker.called_once
+    assert mocker.request_history[0].json() == {"x": 1, "y": "test"}
+
+    assert client.get_x(id="x") == [0]
