@@ -1,5 +1,11 @@
 from typing import (
-    Protocol, Any, Optional, Callable, Type, runtime_checkable, TypeVar,
+    Any,
+    Callable,
+    Optional,
+    Protocol,
+    Type,
+    TypeVar,
+    runtime_checkable,
 )
 
 from .http_request import HttpRequest
@@ -18,7 +24,11 @@ class FactoryProtocol(Protocol):
     def load(self, data: Any, class_: Type[TypeT]) -> TypeT:
         raise NotImplementedError
 
-    def dump(self, data: TypeT, class_: Type[TypeT] = None) -> Any:
+    def dump(
+        self,
+        data: TypeT,
+        class_: Optional[Type[TypeT]] = None,
+    ) -> Any:
         raise NotImplementedError
 
 
@@ -29,6 +39,7 @@ class ClientProtocol(Protocol):
     method_class: Optional[Callable]
 
     def do_request(
-            self, request: HttpRequest,
+        self,
+        request: HttpRequest,
     ) -> Any:
         raise NotImplementedError

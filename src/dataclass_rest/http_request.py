@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Union, IO, Optional
+from typing import IO, Any, Dict, Optional, Union
 
 
 @dataclass
@@ -14,6 +14,7 @@ class HttpRequest:
     is_json_request: bool
     data: Any
     files: Dict[str, File]
-    query_params: Dict
+    query_params: Dict[str, Any]
+    headers: Dict[str, str]
     url: str
     method: str

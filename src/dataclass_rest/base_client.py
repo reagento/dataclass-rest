@@ -1,7 +1,8 @@
 from adaptix import Retort
 
 from .client_protocol import (
-    ClientProtocol, FactoryProtocol,
+    ClientProtocol,
+    FactoryProtocol,
 )
 
 

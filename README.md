@@ -68,7 +68,32 @@ class RealClient(RequestsClient):
 
     @post("todos")
     def create_todo(self, body: Todo) -> Todo:
-        """Создаем Todo"""
+        pass
+```
+
+You can use Callable ```(...) -> str``` as the url source, 
+all parameters passed to the client method can be obtained inside the Callable
+
+```python
+from requests import Session
+from dataclass_rest import get
+from dataclass_rest.http.requests import RequestsClient
+
+def url_generator(todo_id: int) -> str:
+    return f"/todos/{todo_id}/"
+
+
+class RealClient(RequestsClient):
+    def __init__(self):
+        super().__init__("https://dummyjson.com/", Session())
+
+    @get(url_generator)
+    def todo(self, todo_id: int) -> Todo:
+        pass
+
+
+client = RealClient()
+client.todo(5)
 ```
 
 ## Asyncio
@@ -102,3 +127,40 @@ To set same behavior for all methods inherit from BoundMethod class, override `_
 ### Other params
 
 You can use different body argument name if you want. Just pass `body_name` to the decorator.
+
+
+### Special cases
+
+#### `None` in query params
+
+By default, AioHTTP doesn't skip query params, you can customize that overriding `_pre_process_request` in Method class
+
+```python
+class NoneAwareAiohttpMethod(AiohttpMethod):
+    async def _pre_process_request(self, request: HttpRequest) -> HttpRequest:
+        request.query_params = {
+            k: v for k, v in request.query_params.items() if v is not None
+        }
+        return request
+
+
+class Client(AiohttpClient):
+    method_class = NoneAwareAiohttpMethod
+```
+
+#### Handling `No content`
+
+By default, en each method json response is expected. Sometime you expect no content from server. Especially for 204.
+You can handle it by overriding `_response_body` method, e.g.:
+
+```python
+class NoneAwareRequestsMethod(RequestsMethod):
+    def _response_body(self, response: Response) -> Any:
+        if response.status_code == http.HTTPStatus.NO_CONTENT:
+            return None
+        return super()._response_body(response)
+
+
+class Client(RequestsClient):
+    method_class = NoneAwareRequestsMethod
+```

@@ -2,18 +2,20 @@ import urllib.parse
 from json import JSONDecodeError
 from typing import Any, Optional, Tuple
 
-from requests import Session, Response, RequestException
+from requests import RequestException, Response, Session
 
-from ..base_client import BaseClient
-from ..boundmethod import SyncMethod
-from ..exceptions import (
-    ClientLibraryError, ClientError, ServerError, MalformedResponse,
+from dataclass_rest.base_client import BaseClient
+from dataclass_rest.boundmethod import SyncMethod
+from dataclass_rest.exceptions import (
+    ClientError,
+    ClientLibraryError,
+    MalformedResponse,
+    ServerError,
 )
-from ..http_request import HttpRequest, File
+from dataclass_rest.http_request import File, HttpRequest
 
 
 class RequestsMethod(SyncMethod):
-
     def _on_error_default(self, response: Response) -> Any:
         if 400 <= response.status_code < 500:
             raise ClientError(response.status_code)
@@ -36,9 +38,9 @@ class RequestsClient(BaseClient):
     method_class = RequestsMethod
 
     def __init__(
-            self,
-            base_url: str,
-            session: Optional[Session] = None,
+        self,
+        base_url: str,
+        session: Optional[Session] = None,
     ):
         super().__init__()
         self.session = session or Session()
@@ -67,6 +69,7 @@ class RequestsClient(BaseClient):
                 json=json,
                 params=request.query_params,
                 data=data,
+                headers=request.headers,
                 files=files,
             )
         except RequestException as e:

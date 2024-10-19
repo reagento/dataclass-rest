@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 
-from dataclass_factory import Factory, NameStyle, Schema
+import pytest
+from adaptix import NameStyle, Retort, name_mapping
 from requests import Session
 
 from dataclass_rest import get
-from dataclass_rest.async_base import AsyncClient
-from dataclass_rest.sync_base import Client
+from dataclass_rest.http.aiohttp import AiohttpClient
+from dataclass_rest.http.requests import RequestsClient
+
 
 @dataclass
 class Todo:
@@ -13,12 +15,19 @@ class Todo:
 
 
 def test_sync():
-    class RealClient(Client):
+    class RealClient(RequestsClient):
         def __init__(self):
-            super().__init__("https://jsonplaceholder.typicode.com/", Session())
+            super().__init__(
+                "https://jsonplaceholder.typicode.com/",
+                Session(),
+            )
 
-        def _init_factory(self):
-            return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
+        def _init_request_body_factory(self) -> Retort:
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.CAMEL),
+                ],
+            )
 
         @get("todos/{id}")
         def get_todo(self, id: str) -> Todo:
@@ -27,16 +36,22 @@ def test_sync():
     assert RealClient()
 
 
-def test_async():
-    class RealClient(AsyncClient):
+@pytest.mark.asyncio
+async def test_async():
+    class RealClient(AiohttpClient):
         def __init__(self):
-            super().__init__("https://jsonplaceholder.typicode.com/", Session())
+            super().__init__("https://jsonplaceholder.typicode.com/")
 
-        def _init_factory(self):
-            return Factory(default_schema=Schema(name_style=NameStyle.camel_lower))
+        def _init_request_body_factory(self) -> Retort:
+            return Retort(
+                recipe=[
+                    name_mapping(name_style=NameStyle.CAMEL),
+                ],
+            )
 
         @get("todos/{id}")
         async def get_todo(self, id: str) -> Todo:
             pass
 
-    assert RealClient()
+    client = RealClient()
+    await client.session.close()

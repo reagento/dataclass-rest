@@ -4,15 +4,22 @@ from typing import Any, Optional
 
 from aiohttp import FormData
 from aiohttp.client import (
-    ClientResponse, ClientSession, ClientError as AioHttpClientError,
+    ClientError as AioHttpClientError,
+)
+from aiohttp.client import (
+    ClientResponse,
+    ClientSession,
 )
 
-from ..base_client import BaseClient
-from ..boundmethod import AsyncMethod
-from ..exceptions import (
-    ClientError, ClientLibraryError, ServerError, MalformedResponse,
+from dataclass_rest.base_client import BaseClient
+from dataclass_rest.boundmethod import AsyncMethod
+from dataclass_rest.exceptions import (
+    ClientError,
+    ClientLibraryError,
+    MalformedResponse,
+    ServerError,
 )
-from ..http_request import HttpRequest
+from dataclass_rest.http_request import HttpRequest
 
 
 class AiohttpMethod(AsyncMethod):
@@ -41,9 +48,9 @@ class AiohttpClient(BaseClient):
     method_class = AiohttpMethod
 
     def __init__(
-            self,
-            base_url: str,
-            session: Optional[ClientSession] = None,
+        self,
+        base_url: str,
+        session: Optional[ClientSession] = None,
     ):
         super().__init__()
         self.session = session or ClientSession()
@@ -61,7 +68,8 @@ class AiohttpClient(BaseClient):
             for name, file in request.files.items():
                 data.add_field(
                     name,
-                    filename=file.filename, content_type=file.content_type,
+                    filename=file.filename,
+                    content_type=file.content_type,
                     value=file.contents,
                 )
         try:
@@ -71,6 +79,7 @@ class AiohttpClient(BaseClient):
                 json=json,
                 data=data,
                 params=request.query_params,
+                headers=request.headers,
             )
         except AioHttpClientError as e:
             raise ClientLibraryError from e
