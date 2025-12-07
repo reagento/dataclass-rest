@@ -10,12 +10,6 @@ from typing import (
 )
 from uuid import uuid4
 
-try:
-    from typing import Unpack
-except ImportError:
-    T = TypeVar("T")
-    Unpack = Any | T
-
 from descanso import Dumper, Loader
 from descanso.builder_base import (
     Transformer,
@@ -45,6 +39,7 @@ from descanso.response_transformers import (
     KeepResponse,
 )
 from descanso.signature import make_method_spec
+from descanso.typing_compat import Unpack
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")
@@ -388,7 +383,7 @@ class JsonRPCBuilder:
 
     def decorate(
         self,
-        func: Callable[Concatenate[Any, _MethodParamSpec], _MethodResultT],
+        func: Callable[Concatenate[Any, _MethodParamSpec], Any],
     ) -> MethodBinder[_MethodParamSpec, _MethodResultT]:
         spec = make_method_spec(
             func,
@@ -402,7 +397,7 @@ class JsonRPCBuilder:
     @overload
     def __call__(
         self,
-        func: Callable[
+        func_or_parameter: Callable[
             Concatenate[Any, _MethodParamSpec],
             Awaitable[_MethodResultT],
         ],
@@ -411,21 +406,23 @@ class JsonRPCBuilder:
     @overload
     def __call__(
         self,
-        func: Callable[Concatenate[Any, _MethodParamSpec], _MethodResultT],
+        func_or_parameter: Callable[
+            Concatenate[Any, _MethodParamSpec],
+            _MethodResultT,
+        ],
     ) -> MethodBinder[_MethodParamSpec, _MethodResultT]: ...
 
     @overload
     def __call__(
         self,
-        parameter: Transformer | str | None = None,
+        func_or_parameter: Transformer | str | None = None,
         *transformers: Transformer,
-        method: str | None = None,
         **params: Unpack[BuilderParams],
     ) -> "JsonRPCBuilder": ...
 
     def __call__(
         self,
-        func_or_parameter: Callable | Transformer | str | None = None,
+        func_or_parameter: Any = None,
         *transformers: Transformer,
         **params: Unpack[BuilderParams],
     ) -> Any:
@@ -433,7 +430,6 @@ class JsonRPCBuilder:
             instance = self.with_params(*transformers, **params)
         else:
             instance = self
-
         if func_or_parameter is None:
             return instance
         elif isinstance(func_or_parameter, str):

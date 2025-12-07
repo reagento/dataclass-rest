@@ -8,12 +8,6 @@ from typing import (
     overload,
 )
 
-try:
-    from typing import Unpack
-except ImportError:
-    T = TypeVar("T")
-    Unpack = Any | T
-
 from descanso import Dumper, Loader
 from descanso.builder_base import (
     DEFAULT_BODY_PARAM,
@@ -42,6 +36,7 @@ from descanso.response_transformers import (
     KeepResponse,
 )
 from descanso.signature import make_method_spec
+from descanso.typing_compat import Unpack
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")
@@ -237,7 +232,7 @@ class RestBuilder(Decorator):
 
     def __call__(
         self,
-        func: Callable[Concatenate[Any, _MethodParamSpec], _MethodResultT],
+        func: Callable[Concatenate[Any, _MethodParamSpec], Any],
     ) -> MethodBinder[_MethodParamSpec, _MethodResultT]:
         spec = make_method_spec(
             func,

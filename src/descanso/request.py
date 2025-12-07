@@ -111,7 +111,7 @@ class PipeRequestTransformer(BaseRequestTransformer):
         self,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
-        res = []
+        res: list[FieldOut] = []
         for other in self.others:
             res.extend(other.transform_fields(fields_in))
         return res

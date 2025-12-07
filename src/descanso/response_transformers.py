@@ -12,7 +12,7 @@ class BodyModelLoad(BaseResponseTransformer):
     def __init__(
         self,
         type_hint: Any,
-        loader: Loader | None,
+        loader: Loader,
     ) -> None:
         self.type_hint = type_hint
         self.loader = loader

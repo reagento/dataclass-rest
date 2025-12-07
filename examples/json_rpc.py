@@ -1,28 +1,9 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Sequence
-from uuid import uuid4
-
 from adaptix import NameStyle, Retort, name_mapping
 from requests import Session
 
 from descanso.http.requests import RequestsClient
-from descanso.method_descriptor import MethodBinder
-from descanso.method_spec import MethodSpec
-from descanso.request import (
-    FieldDestination,
-    HttpRequest,
-    RequestTransformer, FieldIn, FieldOut,
-)
-from descanso.request_transformers import Body, JsonDump, Method, BodyModelDump
-from descanso.response import HttpResponse, ResponseTransformer
-from descanso.response_transformers import (
-    ErrorRaiser,
-    JsonLoad,
-    KeepResponse,
-    BodyModelLoad,
-)
-from descanso.signature import make_method_spec
 from descanso.jsonrpc import JsonRPCBuilder
 
 DEFAULT_BODY_PARAM = "body"
@@ -62,14 +43,17 @@ class MyClient(RequestsClient):
     @jsonrpc("eth_getTransactionByHash")
     def get_transaction_by_hash(self, body: list[str]) -> Transaction:
         """Get transaction"""
+        raise NotImplementedError
 
-    @jsonrpc("net_version")
+    @jsonrpc("net_version", )
     def net_version(self) -> str:
         """Retrieve net version"""
+        raise NotImplementedError
 
     @jsonrpc("eth_blockNumber")
     def eth_block_number(self) -> str:
         """Retrieve block number"""
+        raise NotImplementedError
 
 
 logging.basicConfig(level=logging.INFO)

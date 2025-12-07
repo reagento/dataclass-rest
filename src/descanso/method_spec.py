@@ -12,7 +12,7 @@ _MethodParamSpec = ParamSpec("_MethodParamSpec")
 @dataclass
 class MethodSpec(Generic[_MethodParamSpec, _MethodResultT]):
     name: str
-    doc: str
+    doc: str | None
     fields_in: list[FieldIn]
     fields_out: list[FieldOut]
     result_type: Any
