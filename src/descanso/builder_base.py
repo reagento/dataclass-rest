@@ -8,12 +8,6 @@ from typing import (
     overload,
 )
 
-try:
-    from typing import Unpack
-except ImportError:
-    T = TypeVar("T")
-    Unpack = Any | T
-
 from descanso.method_descriptor import MethodBinder
 from descanso.request import RequestTransformer
 from descanso.request_transformers import (

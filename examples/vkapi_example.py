@@ -69,6 +69,7 @@ class VkClient(RequestsClient):
     @rest.get("users.get")
     def get_users(self, user_ids: list[str]) -> Response[list[User]]:
         """Get users by their ids"""
+        raise NotImplementedError
 
     @rest.get("users.search")
     def search_users(
@@ -77,6 +78,7 @@ class VkClient(RequestsClient):
             gender: GenderQuery = GenderQuery.ANY,
     ) -> Response[UsersSearchResult]:
         """Search users with pagination"""
+        raise NotImplementedError
 
 
 TOKEN = os.getenv("VK_TOKEN")

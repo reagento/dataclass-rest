@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from io import BytesIO
+from io import IOBase
 from typing import Any
 
 from adaptix import NameStyle, Retort, name_mapping
@@ -41,29 +41,35 @@ class RealClient(RequestsClient):
     @rest.get("todos/{id}")
     def get_todo(self, id: str) -> Todo:
         """GET method with path param"""
+        raise NotImplementedError
 
     @rest.get("todos")
     def list_todos(self, user_id: int | None) -> list[Todo]:
         """GET method with query params"""
+        raise NotImplementedError
 
     @rest.delete("todos/{id}")
     def delete_todo(self, id: int):
         """DELETE method"""
+        raise NotImplementedError
 
     @rest.post("todos")
     async def create_todo(self, body: Todo) -> Todo:
         """POST method"""
+        raise NotImplementedError
 
     @rest.get("https://httpbin.org/get")
     def get_httpbin(self) -> Any:
         """Url different from base_url"""
+        raise NotImplementedError
 
     @rest.post(
         "https://httpbin.org/post",
         File("file"),
     )
-    def upload_image(self, file: BytesIO):
+    def upload_image(self, file: IOBase) -> Any:
         """Sending binary data"""
+        raise NotImplementedError
 
 
 logging.basicConfig(level=logging.INFO)

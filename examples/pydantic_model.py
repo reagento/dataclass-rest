@@ -1,20 +1,20 @@
 import logging
+from tkinter import N
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 from requests import Session
 
-from descanso import delete, get, post
 from descanso.client import Dumper, Loader
 from descanso.http.requests import RequestsClient
 from descanso.rest_builder import RestBuilder
 
 
 class PydanticAdapter(Loader, Dumper):
-    def load(self, data, type_):
-        return TypeAdapter(type_).validate_python(data)
+    def load(self, data, class_):
+        return TypeAdapter(class_).validate_python(data)
 
-    def dump(self, data, type_):
-        return TypeAdapter(type_).dump_python(data)
+    def dump(self, data, class_):
+        return TypeAdapter(class_).dump_python(data)
 
 
 def to_camel(string: str) -> str:
@@ -51,22 +51,27 @@ class RealClient(RequestsClient):
     @rest.get("todos/{id}")
     def get_todo(self, id: str) -> Todo:
         """GET method with path param"""
+        raise NotImplementedError
 
     @rest.get("todos")
     def list_todos(self, user_id: int | None) -> list[Todo]:
         """GET method with query params"""
+        raise NotImplementedError
 
     @rest.delete("todos/{id}")
     def delete_todo(self, id: int):
         """DELETE method"""
+        raise NotImplementedError
 
     @rest.post("todos")
     def create_todo(self, body: Todo) -> Todo:
         """POST method"""
+        raise NotImplementedError
 
     @rest.get("https://httpbin.org/get")
     def get_httpbin(self):
         """Url different from base_url"""
+        raise NotImplementedError
 
 
 logging.basicConfig(level=logging.INFO)
