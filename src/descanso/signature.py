@@ -3,6 +3,7 @@ from collections.abc import Callable, Sequence
 from typing import Any, get_type_hints
 
 from .method_pipeline import MethodPipeline
+from .method_spec import MethodSpec
 from .request import FieldIn, FieldOut, RequestTransformer
 from .response import ResponseTransformer
 
@@ -34,18 +35,24 @@ def make_method_spec(
     transformers: Sequence[RequestTransformer | ResponseTransformer],
     is_in_class: bool,
 ) -> MethodPipeline:
-    fields_in = get_func_fields(func, is_in_class=is_in_class)
-    fields_out: list[FieldOut] = []
-    for r in transformers:
-        fields_out.extend(r.transform_fields(fields_in))
-
-    return MethodPipeline(
+    spec = MethodSpec(
         func=func,
         name=func.__name__,
         doc=func.__doc__,
+        result_type=get_result_type(func),
+    )
+    fields_in = get_func_fields(func, is_in_class=is_in_class)
+    fields_out: list[FieldOut] = []
+    for r in transformers:
+        fields_out.extend(r.transform_fields(spec, fields_in))
+
+    return MethodPipeline(
+        name=spec.name,
+        doc=spec.doc,
+        result_type=spec.result_type,
+        func=spec.func,
         fields_in=fields_in,
         fields_out=fields_out,
-        result_type=get_result_type(func),
         request_transformers=[
             r for r in transformers if isinstance(r, RequestTransformer)
         ],

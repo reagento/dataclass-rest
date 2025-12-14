@@ -63,12 +63,13 @@ def data_in():
         ),
     ],
 )
-def test_body(transformer, consumed, body, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_body(spec, transformer, consumed, body, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -106,12 +107,13 @@ def test_body(transformer, consumed, body, out, fields_in, data_in):
         ),
     ],
 )
-def test_extra(transformer, consumed, extras, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_extra(spec, transformer, consumed, extras, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -149,12 +151,13 @@ def test_extra(transformer, consumed, extras, out, fields_in, data_in):
         ),
     ],
 )
-def test_header(transformer, consumed, headers, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_header(spec, transformer, consumed, headers, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -192,12 +195,13 @@ def test_header(transformer, consumed, headers, out, fields_in, data_in):
         ),
     ],
 )
-def test_query(transformer, consumed, params, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_query(spec, transformer, consumed, params, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -221,12 +225,13 @@ def test_query(transformer, consumed, params, out, fields_in, data_in):
         ),
     ],
 )
-def test_skip(transformer, consumed, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_skip(spec, transformer, consumed, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -243,13 +248,14 @@ def test_skip(transformer, consumed, out, fields_in, data_in):
         (lambda a: f"/{a}", "/any", ["a"]),
     ],
 )
-def test_url(template, url, consumed, fields_in, data_in):
+def test_url(spec, template, url, consumed, fields_in, data_in):
     transformer = Url(template)
-    fields_out = transformer.transform_fields(fields_in)
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == [FieldOut(None, FieldDestination.URL, str)]
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -301,12 +307,13 @@ def test_url(template, url, consumed, fields_in, data_in):
         ),
     ],
 )
-def test_file(transformer, consumed, files, out, fields_in, data_in):
-    fields_out = transformer.transform_fields(fields_in)
+def test_file(spec, transformer, consumed, files, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -315,12 +322,12 @@ def test_file(transformer, consumed, files, out, fields_in, data_in):
     assert req == HttpRequest(files=files)
 
 
-def test_pipe(fields_in, data_in):
+def test_pipe(spec, fields_in, data_in):
     query_transformer = Query("i")
     query_transformer2 = Query("s")
     body_transformer = Body("i")
     transformer = query_transformer | query_transformer2 | body_transformer
-    fields_out = transformer.transform_fields(fields_in)
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert fields_out == [
         FieldOut("i", FieldDestination.QUERY, int),
@@ -331,6 +338,7 @@ def test_pipe(fields_in, data_in):
     assert consumed_fields(fields_in, query_transformer2) == ["s"]
     assert consumed_fields(fields_in, body_transformer) == ["i"]
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -345,13 +353,14 @@ def test_pipe(fields_in, data_in):
     )
 
 
-def test_method(fields_in, data_in):
+def test_method(spec, fields_in, data_in):
     transformer = Method("GET")
-    fields_out = transformer.transform_fields(fields_in)
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == []
     assert fields_out == []
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,

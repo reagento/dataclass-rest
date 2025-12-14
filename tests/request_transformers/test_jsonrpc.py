@@ -6,7 +6,7 @@ from descanso.jsonrpc import (
 from descanso.request import HttpRequest
 
 
-def test_empty_body_omit_params() -> None:
+def test_empty_body_omit_params(spec) -> None:
     request = HttpRequest(
         extras=[
             (EXTRA_JSON_RPC_REQUEST_ID, "some_id"),
@@ -21,12 +21,12 @@ def test_empty_body_omit_params() -> None:
     }
 
     transformer = PackJsonRPC()
-    result_request = transformer.transform_request(request, [], [], {})
+    result_request = transformer.transform_request(spec, request, [], [], {})
 
     assert result_request.body == expected_body
 
 
-def test_body_set_in_params() -> None:
+def test_body_set_in_params(spec) -> None:
     params = {"param1": "value1", "param2": "value2"}
     request = HttpRequest(
         body=params,
@@ -44,6 +44,6 @@ def test_body_set_in_params() -> None:
     }
 
     transformer = PackJsonRPC()
-    result_request = transformer.transform_request(request, [], [], {})
+    result_request = transformer.transform_request(spec, request, [], [], {})
 
     assert result_request.body == expected_body

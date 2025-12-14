@@ -84,6 +84,7 @@ def model_request():
     ],
 )
 def test_body_model_dump(
+    spec,
     fields_in,
     fields_out,
     model_request,
@@ -91,9 +92,10 @@ def test_body_model_dump(
     expected_request: HttpRequest,
 ):
     assert str(transformer)
-    assert transformer.transform_fields(fields_in) == []
+    assert transformer.transform_fields(spec, fields_in) == []
     assert consumed_fields(fields_in, transformer) == []
     request = transformer.transform_request(
+        spec,
         model_request,
         fields_in,
         fields_out,
@@ -102,12 +104,13 @@ def test_body_model_dump(
     assert request == expected_request
 
 
-def test_body_json_dump(fields_in, fields_out):
+def test_body_json_dump(spec, fields_in, fields_out):
     transformer = JsonDump()
     assert str(transformer)
-    assert transformer.transform_fields(fields_in) == []
+    assert transformer.transform_fields(spec, fields_in) == []
     assert consumed_fields(fields_in, transformer) == []
     request = transformer.transform_request(
+        spec,
         HttpRequest(body={"x": "value"}),
         fields_in,
         fields_out,

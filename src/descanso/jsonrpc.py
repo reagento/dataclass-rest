@@ -18,8 +18,10 @@ from .builder_base import (
 from .client import Dumper, Loader
 from .fields import FieldDestination, FieldIn, FieldOut
 from .method_descriptor import MethodBinder
+from .method_pipeline import MethodPipeline
 from .method_spec import MethodSpec
 from .request import (
+    BaseRequestTransformer,
     HttpRequest,
     RequestTransformer,
 )
@@ -29,7 +31,11 @@ from .request_transformers import (
     JsonDump,
     Method,
 )
-from .response import HttpResponse, ResponseTransformer
+from .response import (
+    BaseResponseTransformer,
+    HttpResponse,
+    ResponseTransformer,
+)
 from .response_transformers import (
     BodyModelLoad,
     ErrorRaiser,
@@ -87,12 +93,13 @@ class IdGenerator(Protocol):
     def __call__(self) -> str: ...
 
 
-class JsonRPCIdGenerator(RequestTransformer):
+class JsonRPCIdGenerator(BaseRequestTransformer):
     def __init__(self, id_generator: IdGenerator | None = None) -> None:
         self.id_generator = id_generator
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         return [
@@ -110,6 +117,7 @@ class JsonRPCIdGenerator(RequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -122,12 +130,13 @@ class JsonRPCIdGenerator(RequestTransformer):
         return f"{self.__class__.__name__}({self.id_generator})"
 
 
-class JsonRPCMethod(RequestTransformer):
+class JsonRPCMethod(BaseRequestTransformer):
     def __init__(self, method: str):
         self.method = method
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         return [
@@ -140,6 +149,7 @@ class JsonRPCMethod(RequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -152,15 +162,17 @@ class JsonRPCMethod(RequestTransformer):
         return f"{self.__class__.__name__}({self.method!r})"
 
 
-class PackJsonRPC(RequestTransformer):
+class PackJsonRPC(BaseRequestTransformer):
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         return []
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -181,12 +193,16 @@ class PackJsonRPC(RequestTransformer):
         return f"{self.__class__.__name__}()"
 
 
-class UnpackJsonRPC(ResponseTransformer):
+class UnpackJsonRPC(BaseResponseTransformer):
     def need_response_body(self, response: HttpResponse) -> bool:
         return True
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -197,12 +213,16 @@ class UnpackJsonRPC(ResponseTransformer):
         return f"{self.__class__.__name__}()"
 
 
-class JsonRPCErrorRaiser(ResponseTransformer):
+class JsonRPCErrorRaiser(BaseResponseTransformer):
     def need_response_body(self, response: HttpResponse) -> bool:
         return True
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -257,19 +277,21 @@ class JsonRPCBuilder:
 
     def _add_request_transformer(
         self,
-        spec: MethodSpec,
+        spec: MethodPipeline,
         transformer: RequestTransformer,
     ):
         spec.request_transformers.append(transformer)
-        spec.fields_out.extend(transformer.transform_fields(spec.fields_in))
+        spec.fields_out.extend(
+            transformer.transform_fields(spec, spec.fields_in),
+        )
 
-    def _get_body_field(self, spec: MethodSpec) -> FieldOut | None:
+    def _get_body_field(self, spec: MethodPipeline) -> FieldOut | None:
         for field in spec.fields_out:
             if field.dest is FieldDestination.BODY:
                 return field
         return None
 
-    def _add_body_transformer(self, spec: MethodSpec):
+    def _add_body_transformer(self, spec: MethodPipeline):
         body_out = self._get_body_field(spec)
         if body_out is None:
             body_name = None
@@ -283,7 +305,7 @@ class JsonRPCBuilder:
             body_name = field.name
             self._add_request_transformer(spec, Body(field.name))
 
-    def _add_default_request_body_transformers(self, spec: MethodSpec):
+    def _add_default_request_body_transformers(self, spec: MethodPipeline):
         self._add_default_jsonrpc_method(spec)
         self._add_body_transformer(spec)
 
@@ -351,7 +373,7 @@ class JsonRPCBuilder:
                 BodyModelLoad(spec.result_type, loader=loader),
             )
 
-    def _add_default_jsonrpc_method(self, spec: MethodSpec) -> None:
+    def _add_default_jsonrpc_method(self, spec: MethodPipeline) -> None:
         jsonrpc_method_field = next(
             (
                 field

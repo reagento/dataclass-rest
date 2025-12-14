@@ -42,15 +42,16 @@ from tests.request_transformers.utills import consumed_fields
         ),
     ],
 )
-def test_basic_auth(transformer, consumed, headers, out):
+def test_basic_auth(spec, transformer, consumed, headers, out):
     fields_in = [FieldIn("user", str), FieldIn("password", str)]
     data_in = {"user": "alice", "password": "secret"}
 
-    fields_out = transformer.transform_fields(fields_in)
+    fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
+        spec,
         HttpRequest(),
         fields_in,
         fields_out,
@@ -59,12 +60,12 @@ def test_basic_auth(transformer, consumed, headers, out):
     assert req == HttpRequest(headers=headers)
 
 
-def test_basic_auth_non_latin1():
+def test_basic_auth_non_latin1(spec):
     login = "user\U0001f600"
     password = "päss\U0001f600"  # noqa: S105
     t = BasicAuth(login, password)
-    fields_out = t.transform_fields([])
-    req = t.transform_request(HttpRequest(), [], fields_out, {})
+    fields_out = t.transform_fields(spec, [])
+    req = t.transform_request(spec, HttpRequest(), [], fields_out, {})
 
     expected = HttpRequest(
         headers=Headers(
@@ -74,12 +75,12 @@ def test_basic_auth_non_latin1():
     assert req == expected
 
 
-def test_basic_auth_from_credentials():
+def test_basic_auth_from_credentials(spec):
     login = "a{}"
     password = "b"  # noqa: S105
     t = BasicAuth.from_credentials(login, password)
-    fields_out = t.transform_fields([])
-    req = t.transform_request(HttpRequest(), [], fields_out, {})
+    fields_out = t.transform_fields(spec, [])
+    req = t.transform_request(spec, HttpRequest(), [], fields_out, {})
 
     expected = HttpRequest(
         headers=Headers(KissHeader("Authorization", "Basic YXt9OmI=")),

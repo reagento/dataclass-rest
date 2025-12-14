@@ -18,6 +18,7 @@ from .builder_base import (
 from .client import Dumper, Loader
 from .fields import FieldDestination, FieldOut
 from .method_descriptor import MethodBinder
+from .method_pipeline import MethodPipeline
 from .method_spec import MethodSpec
 from .request import RequestTransformer
 from .request_transformers import (
@@ -143,11 +144,13 @@ class RestBuilder(Decorator):
 
     def _add_request_transformer(
         self,
-        spec: MethodSpec,
+        spec: MethodPipeline,
         transformer: RequestTransformer,
     ):
         spec.request_transformers.append(transformer)
-        spec.fields_out.extend(transformer.transform_fields(spec.fields_in))
+        spec.fields_out.extend(
+            transformer.transform_fields(spec, spec.fields_in),
+        )
 
     def _get_body_field(self, spec: MethodSpec) -> FieldOut | None:
         for field in spec.fields_out:
@@ -155,7 +158,7 @@ class RestBuilder(Decorator):
                 return field
         return None
 
-    def _add_default_request_body_transformers(self, spec: MethodSpec):
+    def _add_default_request_body_transformers(self, spec: MethodPipeline):
         default_body_name = self.params.get("body_name", DEFAULT_BODY_PARAM)
 
         body_out = self._get_body_field(spec)
@@ -176,7 +179,7 @@ class RestBuilder(Decorator):
             elif post_dump:
                 self._add_request_transformer(spec, post_dump)
 
-    def _add_default_query_transformers(self, spec: MethodSpec):
+    def _add_default_query_transformers(self, spec: MethodPipeline):
         for field in spec.fields_in:
             if field.consumed_by:
                 continue
@@ -191,7 +194,7 @@ class RestBuilder(Decorator):
             self._add_request_transformer(spec, query_post_dump)
         return []
 
-    def _add_default_response_transformers(self, spec: MethodSpec) -> None:
+    def _add_default_response_transformers(self, spec: MethodPipeline) -> None:
         error_raiser = self.params.get("error_raiser", ...)
         if error_raiser is ...:
             spec.response_transformers.append(ErrorRaiser())
