@@ -1,6 +1,7 @@
 import pytest
 
 from descanso.exceptions import ClientError, HttpStatusError, ServerError
+from descanso.method_spec import MethodSpec
 from descanso.request import HttpRequest
 from descanso.response import HttpResponse
 from descanso.response_transformers import ErrorRaiser
@@ -26,6 +27,7 @@ from descanso.response_transformers import ErrorRaiser
     ],
 )
 def test_ok(
+    spec: MethodSpec,
     status_code: int,
     status_text: str,
     except_codes: list[int],
@@ -35,6 +37,10 @@ def test_ok(
     response = HttpResponse(status_code=status_code, status_text=status_text)
 
     transformed_response = error_raiser.transform_response(
+        spec,
+        [],
+        [],
+        {},
         HttpRequest(),
         response,
     )
@@ -59,6 +65,7 @@ def test_ok(
     ],
 )
 def test_error(
+    spec: MethodSpec,
     status_code: int,
     status_text: str,
     except_codes: list[int],
@@ -69,7 +76,14 @@ def test_error(
     response = HttpResponse(status_code=status_code, status_text=status_text)
 
     with pytest.raises(error_type) as exc_info:
-        error_raiser.transform_response(HttpRequest(), response)
+        error_raiser.transform_response(
+            spec,
+            [],
+            [],
+            {},
+            HttpRequest(),
+            response,
+        )
 
     exc = exc_info.value
     assert str(error_raiser)

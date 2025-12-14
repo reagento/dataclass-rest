@@ -10,14 +10,21 @@ from descanso.response_transformers import (
 )
 
 
-def test_keep_response():
+def test_keep_response(spec):
     json_load = KeepResponse(need_body=True)
     response = HttpResponse(
         status_code=200,
         status_text="OK",
         body='{"x": 1}',
     )
-    response2 = json_load.transform_response(HttpRequest(), response)
+    response2 = json_load.transform_response(
+        spec,
+        [],
+        [],
+        {},
+        HttpRequest(),
+        response,
+    )
     assert str(json_load)
     assert response2 == HttpResponse(
         status_code=200,
@@ -26,14 +33,21 @@ def test_keep_response():
     )
 
 
-def test_json_load():
+def test_json_load(spec):
     json_load = JsonLoad()
     response = HttpResponse(
         status_code=200,
         status_text="OK",
         body='{"x": 1}',
     )
-    response = json_load.transform_response(HttpRequest(), response)
+    response = json_load.transform_response(
+        spec,
+        [],
+        [],
+        {},
+        HttpRequest(),
+        response,
+    )
     assert str(json_load)
     assert response == HttpResponse(
         status_code=200,
@@ -51,7 +65,7 @@ class StubLoader(Loader):
         return ["stub", data, class_]
 
 
-def test_model_load():
+def test_model_load(spec):
     model_load = BodyModelLoad(
         type_hint=Model,
         loader=StubLoader(),
@@ -61,7 +75,14 @@ def test_model_load():
         status_text="OK",
         body="x",
     )
-    response = model_load.transform_response(HttpRequest(), response)
+    response = model_load.transform_response(
+        spec,
+        [],
+        [],
+        {},
+        HttpRequest(),
+        response,
+    )
     assert str(model_load)
     assert response == HttpResponse(
         status_code=200,
