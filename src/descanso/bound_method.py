@@ -10,19 +10,20 @@ from .client import (
     SyncClient,
     SyncResponseWrapper,
 )
-from .method_spec import MethodSpec
+from .method_pipeline import MethodPipeline
 from .request import HttpRequest
 from .response import HttpResponse
 
 
 def make_request(
     client: BaseClient,
-    spec: MethodSpec,
+    spec: MethodPipeline,
     args: dict[str, Any],
 ) -> HttpRequest:
     request = HttpRequest()
     for transformer in spec.request_transformers:
         transformer.transform_request(
+            spec,
             request,
             spec.fields_in,
             spec.fields_out,
@@ -40,46 +41,76 @@ def make_request(
 
 def make_response_sync(
     client: BaseClient,
-    spec: MethodSpec,
+    spec: MethodPipeline,
     request: HttpRequest,
     response: SyncResponseWrapper,
+    args: dict[str, Any],
 ) -> Any:
     loaded = False
     for transformer in spec.response_transformers:
         if not loaded and transformer.need_response_body(response):
             response.load_body()
             loaded = True
-        response = transformer.transform_response(request, response)
+        response = transformer.transform_response(
+            spec,
+            spec.fields_in,
+            spec.fields_out,
+            args,
+            request,
+            response,
+        )
     for transformer in client.response_transformers:
         if not loaded and transformer.need_response_body(response):
             response.load_body()
             loaded = True
-        transformer.transform_response(request, response)
+        response = transformer.transform_response(
+            spec,
+            spec.fields_in,
+            spec.fields_out,
+            args,
+            request,
+            response,
+        )
     return response.body
 
 
 async def make_response_async(
     client: BaseClient,
-    spec: MethodSpec,
+    spec: MethodPipeline,
     request: HttpRequest,
     response: AsyncResponseWrapper,
+    args: dict[str, Any],
 ) -> Any:
     loaded = False
     for transformer in spec.response_transformers:
         if not loaded and transformer.need_response_body(response):
             await response.aload_body()
             loaded = True
-        response = transformer.transform_response(request, response)
+        response = transformer.transform_response(
+            spec,
+            spec.fields_in,
+            spec.fields_out,
+            args,
+            request,
+            response,
+        )
     for transformer in client.response_transformers:
         if not loaded and transformer.need_response_body(response):
             await response.aload_body()
             loaded = True
-        transformer.transform_response(request, response)
+        response = transformer.transform_response(
+            spec,
+            spec.fields_in,
+            spec.fields_out,
+            args,
+            request,
+            response,
+        )
     return response.body
 
 
 def need_response_body(
-    spec: MethodSpec,
+    spec: MethodPipeline,
     response: HttpResponse,
 ) -> bool:
     for transformer in spec.response_transformers:
@@ -91,7 +122,7 @@ def need_response_body(
 class BoundSyncMethod:
     __slots__ = ("_client", "_spec")
 
-    def __init__(self, spec: MethodSpec, client: SyncClient) -> None:
+    def __init__(self, spec: MethodPipeline, client: SyncClient) -> None:
         self._spec = spec
         self._client = client
 
@@ -104,13 +135,14 @@ class BoundSyncMethod:
                 self._spec,
                 request,
                 response,
+                args,
             )
 
 
 class BoundAsyncMethod:
     __slots__ = ("_client", "_spec")
 
-    def __init__(self, spec: MethodSpec, client: AsyncClient) -> None:
+    def __init__(self, spec: MethodPipeline, client: AsyncClient) -> None:
         self._spec = spec
         self._client = client
 
@@ -123,4 +155,5 @@ class BoundAsyncMethod:
                 self._spec,
                 request,
                 response,
+                args,
             )

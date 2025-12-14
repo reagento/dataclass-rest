@@ -4,6 +4,8 @@ from typing import Any
 
 from .client import Loader
 from .exceptions import ClientError, ServerError
+from .fields import FieldIn, FieldOut
+from .method_spec import MethodSpec
 from .request import HttpRequest
 from .response import BaseResponseTransformer, HttpResponse
 
@@ -19,6 +21,10 @@ class BodyModelLoad(BaseResponseTransformer):
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -40,6 +46,10 @@ class JsonLoad(BaseResponseTransformer):
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -70,6 +80,10 @@ class ErrorRaiser(BaseResponseTransformer):
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -113,6 +127,10 @@ class KeepResponse(BaseResponseTransformer):
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:

@@ -10,36 +10,34 @@ from typing import (
 )
 from uuid import uuid4
 
-from descanso import Dumper, Loader
-from descanso.builder_base import (
+from .builder_base import (
     Transformer,
     UrlSrc,
     url_transformer,
 )
-from descanso.method_descriptor import MethodBinder
-from descanso.method_spec import MethodSpec
-from descanso.request import (
-    FieldDestination,
-    FieldIn,
-    FieldOut,
+from .client import Dumper, Loader
+from .fields import FieldDestination, FieldIn, FieldOut
+from .method_descriptor import MethodBinder
+from .method_spec import MethodSpec
+from .request import (
     HttpRequest,
     RequestTransformer,
 )
-from descanso.request_transformers import (
+from .request_transformers import (
     Body,
     BodyModelDump,
     JsonDump,
     Method,
 )
-from descanso.response import HttpResponse, ResponseTransformer
-from descanso.response_transformers import (
+from .response import HttpResponse, ResponseTransformer
+from .response_transformers import (
     BodyModelLoad,
     ErrorRaiser,
     JsonLoad,
     KeepResponse,
 )
-from descanso.signature import make_method_spec
-from descanso.typing_compat import Unpack
+from .signature import make_method_spec
+from .typing_compat import Unpack
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")

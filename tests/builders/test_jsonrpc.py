@@ -139,11 +139,10 @@ def test_default_jsonrpc_method() -> None:
 
     class Api:
         @jsonrpc
-        def do(self, data: int) -> Model:...
+        def do(self, data: int) -> Model: ...
 
         @jsonrpc()
-        def work(self, data: int) -> Model:...
-
+        def work(self, data: int) -> Model: ...
 
     assert Api.do.spec.request_transformers == IsList(
         dirty[JsonRPCMethod](method="do"),
@@ -162,7 +161,7 @@ def test_default_jsonrpc_method_with_transformers_and_params() -> None:
 
     class Api:
         @jsonrpc(req_transformer, res_transformer, url="/bar")
-        def do(self, data: int) -> Model:...
+        def do(self, data: int) -> Model: ...
 
     assert Api.do.spec.request_transformers == IsList(
         dirty[JsonRPCMethod](method="do"),

@@ -8,9 +8,10 @@ from typing import Any, get_type_hints
 from kiss_headers import BasicAuthorization
 
 from .client import Dumper
+from .fields import FieldDestination
+from .method_spec import MethodSpec
 from .request import (
     BaseRequestTransformer,
-    FieldDestination,
     FieldIn,
     FieldOut,
     FileData,
@@ -66,6 +67,7 @@ class DestTransformer(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         type_hint = self.type_hint
@@ -84,6 +86,7 @@ class DestTransformer(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -116,6 +119,7 @@ class Header(DestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -160,6 +164,7 @@ class BasicAuth(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         for field in fields_in:
@@ -175,6 +180,7 @@ class BasicAuth(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -187,7 +193,9 @@ class BasicAuth(BaseRequestTransformer):
             **{k: v for k, v in data.items() if k in self._password_args},
         )
         auth = BasicAuthorization(
-            str(username), str(password), charset="utf-8",
+            str(username),
+            str(password),
+            charset="utf-8",
         )
         request.headers += auth
         return request
@@ -228,6 +236,7 @@ class Url(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         for field in fields_in:
@@ -237,6 +246,7 @@ class Url(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -266,6 +276,7 @@ class File(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         for field in fields_in:
@@ -282,6 +293,7 @@ class File(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -316,6 +328,7 @@ class Body(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         for field in fields_in:
@@ -332,6 +345,7 @@ class Body(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -352,6 +366,7 @@ class BodyModelDump(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -378,6 +393,7 @@ class QueryModelDump(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -401,6 +417,7 @@ class QueryModelDump(BaseRequestTransformer):
 class JsonDump(BaseRequestTransformer):
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -420,6 +437,7 @@ class Method(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -441,6 +459,7 @@ class Skip(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         if not self.arg:
@@ -460,6 +479,7 @@ class DelimiterQuery(BaseRequestTransformer):
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -493,6 +513,7 @@ class DelimiterQuery(BaseRequestTransformer):
 class DeepObjectQuery(BaseRequestTransformer):
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -525,6 +546,7 @@ class DeepObjectQuery(BaseRequestTransformer):
 class PhpStyleQuery(BaseRequestTransformer):
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -555,6 +577,7 @@ class PhpStyleQuery(BaseRequestTransformer):
 class FormQuery(BaseRequestTransformer):
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],

@@ -8,18 +8,19 @@ from typing import (
     overload,
 )
 
-from descanso import Dumper, Loader
-from descanso.builder_base import (
+from .builder_base import (
     DEFAULT_BODY_PARAM,
     Decorator,
     Transformer,
     UrlSrc,
     url_transformer,
 )
-from descanso.method_descriptor import MethodBinder
-from descanso.method_spec import MethodSpec
-from descanso.request import FieldDestination, FieldOut, RequestTransformer
-from descanso.request_transformers import (
+from .client import Dumper, Loader
+from .fields import FieldDestination, FieldOut
+from .method_descriptor import MethodBinder
+from .method_spec import MethodSpec
+from .request import RequestTransformer
+from .request_transformers import (
     Body,
     BodyModelDump,
     FormQuery,
@@ -28,15 +29,15 @@ from descanso.request_transformers import (
     Query,
     QueryModelDump,
 )
-from descanso.response import HttpResponse, ResponseTransformer
-from descanso.response_transformers import (
+from .response import HttpResponse, ResponseTransformer
+from .response_transformers import (
     BodyModelLoad,
     ErrorRaiser,
     JsonLoad,
     KeepResponse,
 )
-from descanso.signature import make_method_spec
-from descanso.typing_compat import Unpack
+from .signature import make_method_spec
+from .typing_compat import Unpack
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")

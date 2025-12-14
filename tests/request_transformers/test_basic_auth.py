@@ -2,10 +2,12 @@ import pytest
 from kiss_headers import Header as KissHeader
 from kiss_headers import Headers
 
-from descanso.request import (
+from descanso.fields import (
     FieldDestination,
     FieldIn,
     FieldOut,
+)
+from descanso.request import (
     HttpRequest,
 )
 from descanso.request_transformers import BasicAuth
@@ -49,7 +51,10 @@ def test_basic_auth(transformer, consumed, headers, out):
     assert consumed_fields(fields_in, transformer) == consumed
     assert fields_out == out
     req = transformer.transform_request(
-        HttpRequest(), fields_in, fields_out, data_in,
+        HttpRequest(),
+        fields_in,
+        fields_out,
+        data_in,
     )
     assert req == HttpRequest(headers=headers)
 

@@ -4,10 +4,12 @@ import pytest
 from kiss_headers import Header, Headers
 
 from descanso import Dumper
-from descanso.request import (
+from descanso.fields import (
     FieldDestination,
     FieldIn,
     FieldOut,
+)
+from descanso.request import (
     HttpRequest,
     RequestTransformer,
 )
