@@ -50,7 +50,7 @@ class DestTransformer(BaseRequestTransformer):
         self.name_out = name_out
         self.dest = dest
         self.original_template = template
-        self.type_hint = Any
+        self.type_hint: Any = Any
         if template is None:
             self.template = lambda **kwargs: kwargs[name_out]
             self.args = [name_out]

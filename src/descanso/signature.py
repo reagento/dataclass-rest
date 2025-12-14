@@ -3,7 +3,7 @@ from collections.abc import Callable, Sequence
 from typing import Any, get_type_hints
 
 from .method_spec import MethodSpec
-from .request import FieldIn, RequestTransformer
+from .request import FieldIn, FieldOut, RequestTransformer
 from .response import ResponseTransformer
 
 
@@ -35,7 +35,7 @@ def make_method_spec(
     is_in_class: bool,
 ):
     fields_in = get_func_fields(func, is_in_class=is_in_class)
-    fields_out = []
+    fields_out: list[FieldOut] = []
     request_transformers = [
         r for r in transformers if isinstance(r, RequestTransformer)
     ]
