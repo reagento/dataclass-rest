@@ -1,4 +1,3 @@
-
 from typing import Any
 
 import pytest
@@ -58,7 +57,7 @@ def test_body_part(fields_in):
             name="x",
             dest=FieldDestination.BODY_PART,
             type_hint=int,
-        )
+        ),
     ]
     assert consumed_fields([fields_in[0]], transformer) == ["x"]
 
@@ -104,8 +103,16 @@ def test_body_part_dump_with_adaptix(fields_in):
     transformer = BodyPartDump(retort)
 
     fields_out_adaptix = [
-        FieldOut(name="user_id", dest=FieldDestination.BODY_PART, type_hint=int),
-        FieldOut(name="user_name", dest=FieldDestination.BODY_PART, type_hint=str),
+        FieldOut(
+            name="user_id",
+            dest=FieldDestination.BODY_PART,
+            type_hint=int,
+        ),
+        FieldOut(
+            name="user_name",
+            dest=FieldDestination.BODY_PART,
+            type_hint=str,
+        ),
     ]
 
     request = HttpRequest(body={"user_id": 1, "user_name": "test"})

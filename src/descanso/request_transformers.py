@@ -431,7 +431,10 @@ class BodyPartDump(BaseRequestTransformer):
             if f.dest == FieldDestination.BODY_PART
         }
         stub_dataclass = make_dataclass("StubDataclass", types.items())
-        request.body = self.dumper.dump(stub_dataclass(**request.body), stub_dataclass)
+        request.body = self.dumper.dump(
+            stub_dataclass(**request.body),
+            stub_dataclass,
+        )
         return request
 
     def __repr__(self):
