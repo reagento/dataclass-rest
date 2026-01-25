@@ -22,6 +22,7 @@ from descanso.request import FieldDestination, FieldOut, RequestTransformer
 from descanso.request_transformers import (
     Body,
     BodyModelDump,
+    BodyPartDump,
     FormQuery,
     JsonDump,
     Method,
@@ -154,6 +155,13 @@ class RestBuilder(Decorator):
                 return field
         return None
 
+    def _get_body_part_fields(self, spec: MethodSpec) -> list[FieldOut]:
+        return [
+            field
+            for field in spec.fields_out
+            if field.dest is FieldDestination.BODY_PART
+        ]
+
     def _add_default_request_body_transformers(self, spec: MethodSpec):
         default_body_name = self.params.get("body_name", DEFAULT_BODY_PARAM)
 
@@ -164,10 +172,13 @@ class RestBuilder(Decorator):
             if not body_out and field.name == default_body_name:
                 self._add_request_transformer(spec, Body(field.name))
 
-        if self._get_body_field(spec):
+        if self._get_body_field(spec) or self._get_body_part_fields(spec):
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                self._add_request_transformer(spec, BodyModelDump(dumper))
+                if self._get_body_field(spec):
+                    self._add_request_transformer(spec, BodyModelDump(dumper))
+                else:
+                    self._add_request_transformer(spec, BodyPartDump(dumper))
 
             post_dump = self.params.get("request_body_post_dump", ...)
             if post_dump is ...:

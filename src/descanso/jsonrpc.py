@@ -28,6 +28,7 @@ from descanso.request import (
 from descanso.request_transformers import (
     Body,
     BodyModelDump,
+    BodyPartDump,
     JsonDump,
     Method,
 )
@@ -271,6 +272,13 @@ class JsonRPCBuilder:
                 return field
         return None
 
+    def _get_body_part_fields(self, spec: MethodSpec) -> list[FieldOut]:
+        return [
+            field
+            for field in spec.fields_out
+            if field.dest is FieldDestination.BODY_PART
+        ]
+
     def _add_body_transformer(self, spec: MethodSpec):
         body_out = self._get_body_field(spec)
         if body_out is None:
@@ -289,10 +297,13 @@ class JsonRPCBuilder:
         self._add_default_jsonrpc_method(spec)
         self._add_body_transformer(spec)
 
-        if self._get_body_field(spec):
+        if self._get_body_field(spec) or self._get_body_part_fields(spec):
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                self._add_request_transformer(spec, BodyModelDump(dumper))
+                if self._get_body_field(spec):
+                    self._add_request_transformer(spec, BodyModelDump(dumper))
+                else:
+                    self._add_request_transformer(spec, BodyPartDump(dumper))
 
         id_generator = self.params.get("id_generator", ...)
         if id_generator is ...:

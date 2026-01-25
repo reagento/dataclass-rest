@@ -40,6 +40,7 @@ class FieldDestination(Enum):
     URL = "url"
     HEADER = "headers"
     BODY = "body"
+    BODY_PART = "body_part"
     FILE = "files"
     QUERY = "query_params"
     EXTRA = "extras"

@@ -2,6 +2,7 @@ import itertools
 import json
 import string
 from collections.abc import Callable, Iterator, Sequence
+from dataclasses import make_dataclass
 from inspect import getfullargspec
 from typing import Any, get_type_hints
 
@@ -346,6 +347,47 @@ class Body(BaseRequestTransformer):
         return f"{self.__class__.__name__}({self.arg!r})"
 
 
+class BodyPart(BaseRequestTransformer):
+    def __init__(self, arg: str):
+        self.arg = arg
+
+    def transform_fields(
+        self,
+        fields_in: Sequence[FieldIn],
+    ) -> Sequence[FieldOut]:
+        for field in fields_in:
+            if field.name == self.arg:
+                field.consumed_by.append(self)
+                return [
+                    FieldOut(
+                        name=field.name,
+                        dest=FieldDestination.BODY_PART,
+                        type_hint=field.type_hint,
+                    ),
+                ]
+        return []
+
+    def transform_request(
+        self,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        if self.arg not in data:
+            return request
+
+        if request.body is None:
+            request.body = {self.arg: data[self.arg]}
+        else:
+            request.body[self.arg] = data[self.arg]
+
+        return request
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.arg!r})"
+
+
 class BodyModelDump(BaseRequestTransformer):
     def __init__(self, dumper: Dumper) -> None:
         self.dumper = dumper
@@ -366,6 +408,30 @@ class BodyModelDump(BaseRequestTransformer):
             Any,
         )
         request.body = self.dumper.dump(request.body, type_hint)
+        return request
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.dumper!r})"
+
+
+class BodyPartDump(BaseRequestTransformer):
+    def __init__(self, dumper: Dumper) -> None:
+        self.dumper = dumper
+
+    def transform_request(
+        self,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        types = {
+            f.name: f.type_hint
+            for f in fields_out
+            if f.dest == FieldDestination.BODY_PART
+        }
+        stub_dataclass = make_dataclass("StubDataclass", types.items())
+        request.body = self.dumper.dump(stub_dataclass(**request.body), stub_dataclass)
         return request
 
     def __repr__(self):
