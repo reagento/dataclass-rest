@@ -3,15 +3,14 @@ from typing import Any
 import pytest
 from adaptix import NameStyle, Retort, name_mapping
 
-from descanso import Dumper, RestBuilder
-from descanso.exceptions import SpecificationError
+from descanso import Dumper
 from descanso.request import (
     FieldDestination,
     FieldIn,
     FieldOut,
     HttpRequest,
 )
-from descanso.request_transformers import Body, BodyPart, BodyPartDump
+from descanso.request_transformers import BodyPart, BodyPartDump
 from tests.request_transformers.utills import consumed_fields
 
 
@@ -73,13 +72,34 @@ def test_body_part(fields_in):
     assert result_request.body == {"username": "test", "x": 123}
 
 
-def test_body_part_template(fields_in):
-    transformer = BodyPart("x", "hello-{y}")
+def make_body(y: str) -> str:
+    return f"hello-{y}"
+
+
+@pytest.mark.parametrize(
+    ("template", "expected_type_hint", "expected_consumed_fields"),
+    [
+        ("hello-{y}", str, ["y"]),
+        (lambda y: f"hello-{y}", Any, ["y"]),
+        (make_body, str, ["y"]),
+    ],
+)
+def test_body_part_templates(
+    fields_in,
+    template,
+    expected_type_hint,
+    expected_consumed_fields,
+):
+    transformer = BodyPart("x", template)
     assert str(transformer)
     assert transformer.transform_fields(fields_in) == [
-        FieldOut(name="x", dest=FieldDestination.BODY_PART, type_hint=str),
+        FieldOut(
+            name="x",
+            dest=FieldDestination.BODY_PART,
+            type_hint=expected_type_hint,
+        ),
     ]
-    assert consumed_fields(fields_in, transformer) == ["y"]
+    assert consumed_fields(fields_in, transformer) == expected_consumed_fields
 
     request = HttpRequest()
     data = {"y": "world"}

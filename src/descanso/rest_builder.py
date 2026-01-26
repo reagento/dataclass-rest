@@ -176,9 +176,8 @@ class RestBuilder(Decorator):
         body_field = self._get_body_field(spec)
         body_part_fields = self._get_body_part_fields(spec)
         if body_field and body_part_fields:
-            raise SpecificationError(
-                "Body and BodyPart can not be used at the same time",
-            )
+            msg = "Body and BodyPart can not be used at the same time"
+            raise SpecificationError(msg)
 
         if body_field or body_part_fields:
             dumper = self.params.get("request_body_dumper")
