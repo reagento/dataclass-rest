@@ -132,6 +132,46 @@ After dumping body is converted to plain text using ``request_body_post_dump`` w
             ...
 
 
+Building body from parts
+------------------------
+
+In some cases, you may want to build the request body from multiple arguments, for example, when you do not want to create a separate model for the request body.
+You can use ``BodyPart(name, template=None)`` to achieve this.
+
+* ``name`` - the name of the field in the request body.
+* ``template`` - an optional template to format the value. ``BodyPart`` uses the same template implementation as ``Header`` and ``Query``. It can be a format-string, a lambda, or a function.
+
+The behavior of ``request_body_dumper`` and ``request_body_post_dump`` is the same as when using ``Body``.
+
+.. code-block:: python
+
+    from descanso.request_transformers import BodyPart
+    from descanso import RestBuilder
+
+
+    rest = RestBuilder()
+
+
+    class Client:
+        @rest.post(
+            "/",
+            BodyPart("user_id"),
+            BodyPart("user_name", "{first_name}-{last_name}"),
+            BodyPart("level", lambda power: power + 1),
+        )
+        def create_user(
+            self,
+            user_id: int,
+            first_name: str,
+            last_name: str,
+            power: int,
+        ) -> None:
+            ...
+
+.. note::
+    You can not use ``Body`` and ``BodyPart`` at the same time in the same method.
+
+
 Response configuration
 ===========================
 
