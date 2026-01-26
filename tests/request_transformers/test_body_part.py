@@ -3,14 +3,15 @@ from typing import Any
 import pytest
 from adaptix import NameStyle, Retort, name_mapping
 
-from descanso import Dumper
+from descanso import Dumper, RestBuilder
+from descanso.exceptions import SpecificationError
 from descanso.request import (
     FieldDestination,
     FieldIn,
     FieldOut,
     HttpRequest,
 )
-from descanso.request_transformers import BodyPart, BodyPartDump
+from descanso.request_transformers import Body, BodyPart, BodyPartDump
 from tests.request_transformers.utills import consumed_fields
 
 
@@ -50,7 +51,7 @@ def fields_out():
 
 
 def test_body_part(fields_in):
-    transformer = BodyPart(arg="x")
+    transformer = BodyPart("x")
     assert str(transformer)
     assert transformer.transform_fields([fields_in[0]]) == [
         FieldOut(
@@ -70,6 +71,25 @@ def test_body_part(fields_in):
     request.body = {"username": "test"}
     result_request = transformer.transform_request(request, [], [], data)
     assert result_request.body == {"username": "test", "x": 123}
+
+
+def test_body_part_template(fields_in):
+    transformer = BodyPart("x", "hello-{y}")
+    assert str(transformer)
+    assert transformer.transform_fields(fields_in) == [
+        FieldOut(name="x", dest=FieldDestination.BODY_PART, type_hint=str),
+    ]
+    assert consumed_fields(fields_in, transformer) == ["y"]
+
+    request = HttpRequest()
+    data = {"y": "world"}
+    result_request = transformer.transform_request(
+        request,
+        fields_in,
+        [],
+        data,
+    )
+    assert result_request.body == {"x": "hello-world"}
 
 
 def test_body_part_dump(fields_in, fields_out):

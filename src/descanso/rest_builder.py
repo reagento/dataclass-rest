@@ -16,6 +16,7 @@ from descanso.builder_base import (
     UrlSrc,
     url_transformer,
 )
+from descanso.exceptions import SpecificationError
 from descanso.method_descriptor import MethodBinder
 from descanso.method_spec import MethodSpec
 from descanso.request import FieldDestination, FieldOut, RequestTransformer
@@ -172,10 +173,17 @@ class RestBuilder(Decorator):
             if not body_out and field.name == default_body_name:
                 self._add_request_transformer(spec, Body(field.name))
 
-        if self._get_body_field(spec) or self._get_body_part_fields(spec):
+        body_field = self._get_body_field(spec)
+        body_part_fields = self._get_body_part_fields(spec)
+        if body_field and body_part_fields:
+            raise SpecificationError(
+                "Body and BodyPart can not be used at the same time",
+            )
+
+        if body_field or body_part_fields:
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                if self._get_body_field(spec):
+                if body_field:
                     self._add_request_transformer(spec, BodyModelDump(dumper))
                 else:
                     self._add_request_transformer(spec, BodyPartDump(dumper))

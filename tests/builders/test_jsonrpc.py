@@ -1,6 +1,10 @@
+from typing import Any
+
+import pytest
 from dirty_equals import IsList
 
 from descanso import JsonRPCBuilder
+from descanso.exceptions import SpecificationError
 from descanso.jsonrpc import (
     JsonRPCErrorRaiser,
     JsonRPCIdGenerator,
@@ -11,6 +15,7 @@ from descanso.jsonrpc import (
 from descanso.request_transformers import (
     Body,
     BodyModelDump,
+    BodyPart,
     JsonDump,
     Method,
     Skip,
@@ -176,3 +181,12 @@ def test_default_jsonrpc_method_with_transformers_and_params() -> None:
         check_order=False,
         length=...,
     )
+
+
+def test_body_and_body_part_together() -> None:
+    jsonrpc = JsonRPCBuilder()
+
+    with pytest.raises(SpecificationError):
+
+        @jsonrpc("/", Body("body"), BodyPart("a"))
+        def method(self, body: Any, a: int): ...

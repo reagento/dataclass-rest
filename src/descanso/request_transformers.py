@@ -347,25 +347,13 @@ class Body(BaseRequestTransformer):
         return f"{self.__class__.__name__}({self.arg!r})"
 
 
-class BodyPart(BaseRequestTransformer):
-    def __init__(self, arg: str):
-        self.arg = arg
-
-    def transform_fields(
-        self,
-        fields_in: Sequence[FieldIn],
-    ) -> Sequence[FieldOut]:
-        for field in fields_in:
-            if field.name == self.arg:
-                field.consumed_by.append(self)
-                return [
-                    FieldOut(
-                        name=field.name,
-                        dest=FieldDestination.BODY_PART,
-                        type_hint=field.type_hint,
-                    ),
-                ]
-        return []
+class BodyPart(DestTransformer):
+    def __init__(self, name_out: str, template: DataTemplate = None):
+        super().__init__(
+            name_out=name_out,
+            template=template,
+            dest=FieldDestination.BODY_PART,
+        )
 
     def transform_request(
         self,
@@ -374,18 +362,15 @@ class BodyPart(BaseRequestTransformer):
         fields_out: Sequence[FieldOut],
         data: dict[str, Any],
     ) -> HttpRequest:
-        if self.arg not in data:
-            return request
+        value = self.template(
+            **{k: v for k, v in data.items() if k in self.args},
+        )
 
         if request.body is None:
-            request.body = {self.arg: data[self.arg]}
-        else:
-            request.body[self.arg] = data[self.arg]
+            request.body = {}
+        request.body[self.name_out] = value
 
         return request
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self.arg!r})"
 
 
 class BodyModelDump(BaseRequestTransformer):
