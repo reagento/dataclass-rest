@@ -163,6 +163,21 @@ class RestBuilder(Decorator):
             if field.dest is FieldDestination.BODY_PART
         ]
 
+    def _add_request_body_dumper(self, spec: MethodSpec):
+        dumper = self.params.get("request_body_dumper")
+        if dumper:
+            if self._get_body_field(spec):
+                self._add_request_transformer(spec, BodyModelDump(dumper))
+            else:
+                self._add_request_transformer(spec, BodyPartDump(dumper))
+
+    def _add_request_body_post_dump(self, spec: MethodSpec):
+        post_dump = self.params.get("request_body_post_dump", ...)
+        if post_dump is ...:
+            self._add_request_transformer(spec, JsonDump())
+        elif post_dump:
+            self._add_request_transformer(spec, post_dump)
+
     def _add_default_request_body_transformers(self, spec: MethodSpec):
         default_body_name = self.params.get("body_name", DEFAULT_BODY_PARAM)
 
@@ -180,18 +195,8 @@ class RestBuilder(Decorator):
             raise SpecificationError(msg)
 
         if body_field or body_part_fields:
-            dumper = self.params.get("request_body_dumper")
-            if dumper:
-                if body_field:
-                    self._add_request_transformer(spec, BodyModelDump(dumper))
-                else:
-                    self._add_request_transformer(spec, BodyPartDump(dumper))
-
-            post_dump = self.params.get("request_body_post_dump", ...)
-            if post_dump is ...:
-                self._add_request_transformer(spec, JsonDump())
-            elif post_dump:
-                self._add_request_transformer(spec, post_dump)
+            self._add_request_body_dumper(spec)
+            self._add_request_body_post_dump(spec)
 
     def _add_default_query_transformers(self, spec: MethodSpec):
         for field in spec.fields_in:
