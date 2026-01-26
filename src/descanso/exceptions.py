@@ -22,3 +22,7 @@ class ClientError(HttpStatusError):
 
 class ServerError(HttpStatusError):
     pass
+
+
+class SpecificationError(ValueError):
+    pass

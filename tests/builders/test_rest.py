@@ -1,12 +1,15 @@
 from typing import Any
 
+import pytest
 from dirty_equals import Contains
 
 from descanso import Loader, RestBuilder
 from descanso.client import Dumper
+from descanso.exceptions import SpecificationError
 from descanso.request_transformers import (
     Body,
     BodyModelDump,
+    BodyPart,
     FormQuery,
     JsonDump,
     Method,
@@ -171,3 +174,12 @@ def test_override_params():
         error_raiser,
         response_body_pre_load2,
     ]
+
+
+def test_body_and_body_part_together() -> None:
+    rest = RestBuilder()
+
+    with pytest.raises(SpecificationError):
+
+        @rest.post("/", Body("body"), BodyPart("a"))
+        def method(self, body: Any, a: int): ...

@@ -16,6 +16,7 @@ from descanso.builder_base import (
     UrlSrc,
     url_transformer,
 )
+from descanso.exceptions import SpecificationError
 from descanso.method_descriptor import MethodBinder
 from descanso.method_spec import MethodSpec
 from descanso.request import (
@@ -28,6 +29,7 @@ from descanso.request import (
 from descanso.request_transformers import (
     Body,
     BodyModelDump,
+    BodyPartDump,
     JsonDump,
     Method,
 )
@@ -271,6 +273,13 @@ class JsonRPCBuilder:
                 return field
         return None
 
+    def _get_body_part_fields(self, spec: MethodSpec) -> list[FieldOut]:
+        return [
+            field
+            for field in spec.fields_out
+            if field.dest is FieldDestination.BODY_PART
+        ]
+
     def _add_body_transformer(self, spec: MethodSpec):
         body_out = self._get_body_field(spec)
         if body_out is None:
@@ -285,15 +294,22 @@ class JsonRPCBuilder:
             body_name = field.name
             self._add_request_transformer(spec, Body(field.name))
 
-    def _add_default_request_body_transformers(self, spec: MethodSpec):
-        self._add_default_jsonrpc_method(spec)
-        self._add_body_transformer(spec)
+    def _add_request_body_dumper(self, spec: MethodSpec):
+        body_field = self._get_body_field(spec)
+        body_part_fields = self._get_body_part_fields(spec)
+        if body_field and body_part_fields:
+            msg = "Body and BodyPart can not be used at the same time"
+            raise SpecificationError(msg)
 
-        if self._get_body_field(spec):
+        if body_field or body_part_fields:
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                self._add_request_transformer(spec, BodyModelDump(dumper))
+                if body_field:
+                    self._add_request_transformer(spec, BodyModelDump(dumper))
+                else:
+                    self._add_request_transformer(spec, BodyPartDump(dumper))
 
+    def _add_jsonrpc_id_generator(self, spec: MethodSpec):
         id_generator = self.params.get("id_generator", ...)
         if id_generator is ...:
             self._add_request_transformer(spec, JsonRPCIdGenerator())
@@ -303,22 +319,35 @@ class JsonRPCBuilder:
                 JsonRPCIdGenerator(id_generator),
             )
 
-        url_src = self.params.get("url") or ""
-        self._add_request_transformer(spec, url_transformer(url_src))
-
-        self._add_request_transformer(spec, PackJsonRPC())
-
+    def _add_request_body_post_dump(self, spec: MethodSpec):
         post_dump = self.params.get("request_body_post_dump", ...)
         if post_dump is ...:
             self._add_request_transformer(spec, JsonDump())
         elif post_dump:
             self._add_request_transformer(spec, post_dump)
 
+    def _add_http_method(self, spec: MethodSpec):
         http_method = self.params.get("http_method", ...)
         if http_method is ...:
             self._add_request_transformer(spec, Method("POST"))
         elif http_method:
             self._add_request_transformer(spec, Method(http_method))
+
+    def _add_default_request_body_transformers(self, spec: MethodSpec):
+        self._add_default_jsonrpc_method(spec)
+        self._add_body_transformer(spec)
+
+        self._add_request_body_dumper(spec)
+
+        self._add_jsonrpc_id_generator(spec)
+
+        url_src = self.params.get("url") or ""
+        self._add_request_transformer(spec, url_transformer(url_src))
+
+        self._add_request_transformer(spec, PackJsonRPC())
+
+        self._add_request_body_post_dump(spec)
+        self._add_http_method(spec)
 
     def _add_default_response_transformers(self, spec: MethodSpec) -> None:
         error_raiser = self.params.get("error_raiser", ...)

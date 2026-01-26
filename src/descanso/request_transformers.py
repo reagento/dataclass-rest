@@ -2,6 +2,7 @@ import itertools
 import json
 import string
 from collections.abc import Callable, Iterator, Sequence
+from dataclasses import make_dataclass
 from inspect import getfullargspec
 from typing import Any, get_type_hints
 
@@ -346,6 +347,32 @@ class Body(BaseRequestTransformer):
         return f"{self.__class__.__name__}({self.arg!r})"
 
 
+class BodyPart(DestTransformer):
+    def __init__(self, name_out: str, template: DataTemplate = None):
+        super().__init__(
+            name_out=name_out,
+            template=template,
+            dest=FieldDestination.BODY_PART,
+        )
+
+    def transform_request(
+        self,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        value = self.template(
+            **{k: v for k, v in data.items() if k in self.args},
+        )
+
+        if request.body is None:
+            request.body = {}
+        request.body[self.name_out] = value
+
+        return request
+
+
 class BodyModelDump(BaseRequestTransformer):
     def __init__(self, dumper: Dumper) -> None:
         self.dumper = dumper
@@ -366,6 +393,33 @@ class BodyModelDump(BaseRequestTransformer):
             Any,
         )
         request.body = self.dumper.dump(request.body, type_hint)
+        return request
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.dumper!r})"
+
+
+class BodyPartDump(BaseRequestTransformer):
+    def __init__(self, dumper: Dumper) -> None:
+        self.dumper = dumper
+
+    def transform_request(
+        self,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        types = {
+            f.name: f.type_hint
+            for f in fields_out
+            if f.dest == FieldDestination.BODY_PART
+        }
+        stub_dataclass = make_dataclass("StubDataclass", types.items())
+        request.body = self.dumper.dump(
+            stub_dataclass(**request.body),
+            stub_dataclass,
+        )
         return request
 
     def __repr__(self):
