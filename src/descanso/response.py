@@ -26,14 +26,6 @@ class ResponseTransformer(Transformer, Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def transform_fields(
-        self,
-        spec: MethodSpec,
-        fields_in: Sequence[FieldIn],
-    ) -> Sequence[FieldOut]:
-        raise NotImplementedError
-
-    @abstractmethod
     def transform_response(
         self,
         spec: MethodSpec,

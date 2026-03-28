@@ -7,10 +7,10 @@ from typing import Any, get_type_hints
 
 from kiss_headers import BasicAuthorization
 
-from .client import Dumper
-from .fields import FieldDestination
-from .method_spec import MethodSpec
-from .request import (
+from descanso.client import Dumper
+from descanso.fields import FieldDestination
+from descanso.method_spec import MethodSpec
+from descanso.request import (
     BaseRequestTransformer,
     FieldIn,
     FieldOut,

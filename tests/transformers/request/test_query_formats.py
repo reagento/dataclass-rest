@@ -1,13 +1,13 @@
 import pytest
 
 from descanso.request import FieldIn, HttpRequest
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     DeepObjectQuery,
     DelimiterQuery,
     FormQuery,
     PhpStyleQuery,
 )
-from tests.request_transformers.utills import consumed_fields
+from .utils import consumed_fields
 
 
 @pytest.fixture

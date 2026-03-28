@@ -8,20 +8,14 @@ from typing import (
     overload,
 )
 
-from .builder_base import (
-    DEFAULT_BODY_PARAM,
-    Decorator,
-    Transformer,
-    UrlSrc,
-    url_transformer,
-)
-from .client import Dumper, Loader
-from .fields import FieldDestination, FieldOut
-from .method_descriptor import MethodBinder
-from .method_pipeline import MethodPipeline
-from .method_spec import MethodSpec
-from .request import RequestTransformer
-from .request_transformers import (
+from descanso.client import Dumper, Loader
+from descanso.fields import FieldDestination, FieldOut
+from descanso.method_descriptor import MethodBinder
+from descanso.method_pipeline import MethodPipeline
+from descanso.request import RequestTransformer
+from descanso.response import HttpResponse, ResponseTransformer
+from descanso.signature import make_method_pipeline
+from descanso.transformers.request import (
     Body,
     BodyModelDump,
     FormQuery,
@@ -30,15 +24,20 @@ from .request_transformers import (
     Query,
     QueryModelDump,
 )
-from .response import HttpResponse, ResponseTransformer
-from .response_transformers import (
+from descanso.transformers.response import (
     BodyModelLoad,
     ErrorRaiser,
     JsonLoad,
     KeepResponse,
 )
-from .signature import make_method_spec
-from .typing_compat import Unpack
+from descanso.typing_compat import Unpack
+from .builder_base import (
+    DEFAULT_BODY_PARAM,
+    Decorator,
+    Transformer,
+    UrlSrc,
+    url_transformer,
+)
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")
@@ -144,79 +143,82 @@ class RestBuilder(Decorator):
 
     def _add_request_transformer(
         self,
-        spec: MethodPipeline,
+        pipeline: MethodPipeline,
         transformer: RequestTransformer,
     ):
-        spec.request_transformers.append(transformer)
-        spec.fields_out.extend(
-            transformer.transform_fields(spec, spec.fields_in),
+        pipeline.request_transformers.append(transformer)
+        pipeline.fields_out.extend(
+            transformer.transform_fields(pipeline, pipeline.fields_in),
         )
 
-    def _get_body_field(self, spec: MethodSpec) -> FieldOut | None:
-        for field in spec.fields_out:
+    def _get_body_field(self, pipeline: MethodPipeline) -> FieldOut | None:
+        for field in pipeline.fields_out:
             if field.dest is FieldDestination.BODY:
                 return field
         return None
 
-    def _add_default_request_body_transformers(self, spec: MethodPipeline):
+    def _add_default_request_body_transformers(self, pipeline: MethodPipeline):
         default_body_name = self.params.get("body_name", DEFAULT_BODY_PARAM)
 
-        body_out = self._get_body_field(spec)
-        for field in spec.fields_in:
+        body_out = self._get_body_field(pipeline)
+        for field in pipeline.fields_in:
             if field.consumed_by:
                 continue
             if not body_out and field.name == default_body_name:
-                self._add_request_transformer(spec, Body(field.name))
+                self._add_request_transformer(pipeline, Body(field.name))
 
-        if self._get_body_field(spec):
+        if self._get_body_field(pipeline):
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                self._add_request_transformer(spec, BodyModelDump(dumper))
+                self._add_request_transformer(pipeline, BodyModelDump(dumper))
 
             post_dump = self.params.get("request_body_post_dump", ...)
             if post_dump is ...:
-                self._add_request_transformer(spec, JsonDump())
+                self._add_request_transformer(pipeline, JsonDump())
             elif post_dump:
-                self._add_request_transformer(spec, post_dump)
+                self._add_request_transformer(pipeline, post_dump)
 
-    def _add_default_query_transformers(self, spec: MethodPipeline):
-        for field in spec.fields_in:
+    def _add_default_query_transformers(self, pipeline: MethodPipeline):
+        for field in pipeline.fields_in:
             if field.consumed_by:
                 continue
-            self._add_request_transformer(spec, Query(field.name))
+            self._add_request_transformer(pipeline, Query(field.name))
 
         if dumper := self.params.get("query_param_dumper"):
-            self._add_request_transformer(spec, QueryModelDump(dumper))
+            self._add_request_transformer(pipeline, QueryModelDump(dumper))
         query_post_dump = self.params.get("query_param_post_dump", ...)
         if query_post_dump is ...:
-            self._add_request_transformer(spec, FormQuery())
+            self._add_request_transformer(pipeline, FormQuery())
         elif query_post_dump:
-            self._add_request_transformer(spec, query_post_dump)
+            self._add_request_transformer(pipeline, query_post_dump)
         return []
 
-    def _add_default_response_transformers(self, spec: MethodPipeline) -> None:
+    def _add_default_response_transformers(
+        self,
+        pipeline: MethodPipeline,
+    ) -> None:
         error_raiser = self.params.get("error_raiser", ...)
         if error_raiser is ...:
-            spec.response_transformers.append(ErrorRaiser())
+            pipeline.response_transformers.append(ErrorRaiser())
         elif error_raiser:
-            spec.response_transformers.append(error_raiser)
+            pipeline.response_transformers.append(error_raiser)
 
         pre_loader = self.params.get("response_body_pre_load", ...)
         if pre_loader is ...:
-            spec.response_transformers.append(JsonLoad())
+            pipeline.response_transformers.append(JsonLoad())
         elif pre_loader:
-            spec.response_transformers.append(pre_loader)
+            pipeline.response_transformers.append(pre_loader)
 
         loader = self.params.get("response_body_loader")
-        if spec.result_type is HttpResponse:
-            spec.response_transformers.append(KeepResponse(need_body=False))
+        if pipeline.result_type is HttpResponse:
+            pipeline.response_transformers.append(KeepResponse(need_body=False))
         elif (
-            loader
-            and spec.result_type is not Any
-            and spec.result_type is not object
+                loader
+                and pipeline.result_type is not Any
+                and pipeline.result_type is not object
         ):
-            spec.response_transformers.append(
-                BodyModelLoad(spec.result_type, loader=loader),
+            pipeline.response_transformers.append(
+                BodyModelLoad(pipeline.result_type, loader=loader),
             )
 
     @overload
@@ -238,12 +240,12 @@ class RestBuilder(Decorator):
         self,
         func: Callable[Concatenate[Any, _MethodParamSpec], Any],
     ) -> MethodBinder[_MethodParamSpec, _MethodResultT]:
-        spec = make_method_spec(
+        pipeline = make_method_pipeline(
             func,
             transformers=self.transformers,
             is_in_class=True,
         )
-        self._add_default_request_body_transformers(spec)
-        self._add_default_query_transformers(spec)
-        self._add_default_response_transformers(spec)
-        return MethodBinder(spec)
+        self._add_default_request_body_transformers(pipeline)
+        self._add_default_query_transformers(pipeline)
+        self._add_default_response_transformers(pipeline)
+        return MethodBinder(pipeline)

@@ -11,7 +11,7 @@ from descanso.client import (
 )
 from descanso.request import HttpRequest, RequestTransformer
 from descanso.response import ResponseTransformer
-from descanso.utils import ensure_trailing_slash
+from .utils import ensure_trailing_slash
 
 
 class RequestsResponseWrapper(SyncResponseWrapper):

@@ -1,14 +1,14 @@
 from dirty_equals import IsList
 
 from descanso import JsonRPCBuilder
-from descanso.jsonrpc import (
+from descanso.api_builders.jsonrpc import (
     JsonRPCErrorRaiser,
     JsonRPCIdGenerator,
     JsonRPCMethod,
     PackJsonRPC,
     UnpackJsonRPC,
 )
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     Body,
     BodyModelDump,
     JsonDump,
@@ -16,7 +16,7 @@ from descanso.request_transformers import (
     Skip,
     Url,
 )
-from descanso.response_transformers import BodyModelLoad, ErrorRaiser, JsonLoad
+from descanso.transformers.response import BodyModelLoad, ErrorRaiser, JsonLoad
 from .test_rest import StubConverter
 from .utils import dirty
 

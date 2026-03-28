@@ -13,12 +13,12 @@ from descanso.request import (
     HttpRequest,
     RequestTransformer,
 )
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     BodyModelDump,
     JsonDump,
     QueryModelDump,
 )
-from tests.request_transformers.utills import consumed_fields
+from .utils import consumed_fields
 
 
 class QueryModel:

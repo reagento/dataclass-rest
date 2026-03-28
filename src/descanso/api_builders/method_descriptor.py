@@ -9,8 +9,8 @@ from typing import (
 )
 
 from .bound_method import BoundAsyncMethod, BoundSyncMethod
-from .client import AsyncClient, SyncClient
-from .method_spec import MethodSpec
+from descanso.client import AsyncClient, SyncClient
+from descanso.method_spec import MethodSpec
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")

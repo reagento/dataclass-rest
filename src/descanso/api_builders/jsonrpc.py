@@ -10,40 +10,40 @@ from typing import (
 )
 from uuid import uuid4
 
-from .builder_base import (
-    Transformer,
-    UrlSrc,
-    url_transformer,
-)
-from .client import Dumper, Loader
-from .fields import FieldDestination, FieldIn, FieldOut
-from .method_descriptor import MethodBinder
-from .method_pipeline import MethodPipeline
-from .method_spec import MethodSpec
-from .request import (
+from descanso.client import Dumper, Loader
+from descanso.fields import FieldDestination, FieldIn, FieldOut
+from descanso.method_descriptor import MethodBinder
+from descanso.method_pipeline import MethodPipeline
+from descanso.method_spec import MethodSpec
+from descanso.request import (
     BaseRequestTransformer,
     HttpRequest,
     RequestTransformer,
 )
-from .request_transformers import (
+from descanso.response import (
+    BaseResponseTransformer,
+    HttpResponse,
+    ResponseTransformer,
+)
+from descanso.signature import make_method_pipeline
+from descanso.transformers.request import (
     Body,
     BodyModelDump,
     JsonDump,
     Method,
 )
-from .response import (
-    BaseResponseTransformer,
-    HttpResponse,
-    ResponseTransformer,
-)
-from .response_transformers import (
+from descanso.transformers.response import (
     BodyModelLoad,
     ErrorRaiser,
     JsonLoad,
     KeepResponse,
 )
-from .signature import make_method_spec
-from .typing_compat import Unpack
+from descanso.typing_compat import Unpack
+from .builder_base import (
+    Transformer,
+    UrlSrc,
+    url_transformer,
+)
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")
@@ -277,68 +277,68 @@ class JsonRPCBuilder:
 
     def _add_request_transformer(
         self,
-        spec: MethodPipeline,
+        pipeline: MethodPipeline,
         transformer: RequestTransformer,
     ):
-        spec.request_transformers.append(transformer)
-        spec.fields_out.extend(
-            transformer.transform_fields(spec, spec.fields_in),
+        pipeline.request_transformers.append(transformer)
+        pipeline.fields_out.extend(
+            transformer.transform_fields(pipeline, pipeline.fields_in),
         )
 
-    def _get_body_field(self, spec: MethodPipeline) -> FieldOut | None:
-        for field in spec.fields_out:
+    def _get_body_field(self, pipeline: MethodPipeline) -> FieldOut | None:
+        for field in pipeline.fields_out:
             if field.dest is FieldDestination.BODY:
                 return field
         return None
 
-    def _add_body_transformer(self, spec: MethodPipeline):
-        body_out = self._get_body_field(spec)
+    def _add_body_transformer(self, pipeline: MethodPipeline):
+        body_out = self._get_body_field(pipeline)
         if body_out is None:
             body_name = None
         else:
             body_name = body_out.name
-        for field in spec.fields_in:
+        for field in pipeline.fields_in:
             if field.consumed_by:
                 continue
             if body_name:
                 raise MultipleBodyError(body_name, field.name)
             body_name = field.name
-            self._add_request_transformer(spec, Body(field.name))
+            self._add_request_transformer(pipeline, Body(field.name))
 
-    def _add_default_request_body_transformers(self, spec: MethodPipeline):
-        self._add_default_jsonrpc_method(spec)
-        self._add_body_transformer(spec)
+    def _add_default_request_body_transformers(self, pipeline: MethodPipeline):
+        self._add_default_jsonrpc_method(pipeline)
+        self._add_body_transformer(pipeline)
 
-        if self._get_body_field(spec):
+        if self._get_body_field(pipeline):
             dumper = self.params.get("request_body_dumper")
             if dumper:
-                self._add_request_transformer(spec, BodyModelDump(dumper))
+                self._add_request_transformer(pipeline, BodyModelDump(dumper))
 
         id_generator = self.params.get("id_generator", ...)
         if id_generator is ...:
-            self._add_request_transformer(spec, JsonRPCIdGenerator())
+            self._add_request_transformer(pipeline, JsonRPCIdGenerator())
         elif id_generator:
             self._add_request_transformer(
-                spec,
+                pipeline,
                 JsonRPCIdGenerator(id_generator),
             )
 
         url_src = self.params.get("url") or ""
-        self._add_request_transformer(spec, url_transformer(url_src))
+        self._add_request_transformer(pipeline, url_transformer(url_src))
 
-        self._add_request_transformer(spec, PackJsonRPC())
+        self._add_request_transformer(pipeline, PackJsonRPC())
 
         post_dump = self.params.get("request_body_post_dump", ...)
         if post_dump is ...:
-            self._add_request_transformer(spec, JsonDump())
+            self._add_request_transformer(pipeline, JsonDump())
         elif post_dump:
-            self._add_request_transformer(spec, post_dump)
+            self._add_request_transformer(pipeline, post_dump)
 
         http_method = self.params.get("http_method", ...)
         if http_method is ...:
-            self._add_request_transformer(spec, Method("POST"))
+            self._add_request_transformer(pipeline, Method("POST"))
         elif http_method:
-            self._add_request_transformer(spec, Method(http_method))
+            self._add_request_transformer(pipeline, Method(http_method))
 
     def _add_default_response_transformers(self, spec: MethodSpec) -> None:
         error_raiser = self.params.get("error_raiser", ...)
@@ -373,18 +373,21 @@ class JsonRPCBuilder:
                 BodyModelLoad(spec.result_type, loader=loader),
             )
 
-    def _add_default_jsonrpc_method(self, spec: MethodPipeline) -> None:
+    def _add_default_jsonrpc_method(self, pipeline: MethodPipeline) -> None:
         jsonrpc_method_field = next(
             (
                 field
-                for field in spec.fields_out
+                for field in pipeline.fields_out
                 if field.name == EXTRA_JSON_RPC_METHOD
                 and field.dest is FieldDestination.EXTRA
             ),
             None,
         )
         if jsonrpc_method_field is None:
-            self._add_request_transformer(spec, JsonRPCMethod(spec.name))
+            self._add_request_transformer(
+                pipeline,
+                JsonRPCMethod(pipeline.name),
+            )
 
     @overload
     def decorate(
@@ -405,7 +408,7 @@ class JsonRPCBuilder:
         self,
         func: Callable[Concatenate[Any, _MethodParamSpec], Any],
     ) -> MethodBinder[_MethodParamSpec, _MethodResultT]:
-        spec = make_method_spec(
+        spec = make_method_pipeline(
             func,
             transformers=self.transformers,
             is_in_class=True,

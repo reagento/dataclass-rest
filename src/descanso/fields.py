@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, unique
 from typing import (
     Any,
     Protocol,
@@ -11,6 +11,7 @@ from typing import (
 from .method_spec import MethodSpec
 
 
+@unique
 class FieldDestination(Enum):
     URL = "url"
     HEADER = "headers"

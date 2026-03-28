@@ -29,7 +29,7 @@ def get_result_type(func: Callable) -> Any:
     return hints.get("return", Any)
 
 
-def make_method_spec(
+def make_method_pipeline(
     func: Callable,
     *,
     transformers: Sequence[RequestTransformer | ResponseTransformer],

@@ -27,7 +27,7 @@ from descanso.request import (
     RequestTransformer,
 )
 from descanso.response import ResponseTransformer
-from descanso.utils import ensure_trailing_slash
+from .utils import ensure_trailing_slash
 
 _FileName = str | None
 _FileContent = IO[bytes] | bytes | str

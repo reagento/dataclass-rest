@@ -10,8 +10,8 @@ from descanso.fields import (
 from descanso.request import (
     HttpRequest,
 )
-from descanso.request_transformers import BasicAuth
-from tests.request_transformers.utills import consumed_fields
+from descanso.transformers.request import BasicAuth
+from .utils import consumed_fields
 
 
 @pytest.mark.parametrize(

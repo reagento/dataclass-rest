@@ -3,7 +3,7 @@ from typing import Any
 from descanso import Loader
 from descanso.request import HttpRequest
 from descanso.response import HttpResponse
-from descanso.response_transformers import (
+from descanso.transformers.response import (
     BodyModelLoad,
     JsonLoad,
     KeepResponse,

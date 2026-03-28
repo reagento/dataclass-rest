@@ -13,7 +13,7 @@ from descanso.request import (
     FileData,
     HttpRequest,
 )
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     Body,
     Extra,
     File,
@@ -23,7 +23,7 @@ from descanso.request_transformers import (
     Skip,
     Url,
 )
-from tests.request_transformers.utills import consumed_fields
+from .utils import consumed_fields
 
 
 def query_int(i: int) -> int:

@@ -4,7 +4,7 @@ from descanso.exceptions import ClientError, HttpStatusError, ServerError
 from descanso.method_spec import MethodSpec
 from descanso.request import HttpRequest
 from descanso.response import HttpResponse
-from descanso.response_transformers import ErrorRaiser
+from descanso.transformers.response import ErrorRaiser
 
 
 @pytest.mark.parametrize(

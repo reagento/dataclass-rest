@@ -2,12 +2,12 @@ import json
 from collections.abc import Sequence
 from typing import Any
 
-from .client import Loader
-from .exceptions import ClientError, ServerError
-from .fields import FieldIn, FieldOut
-from .method_spec import MethodSpec
-from .request import HttpRequest
-from .response import BaseResponseTransformer, HttpResponse
+from descanso.client import Loader
+from descanso.exceptions import ClientError, ServerError
+from descanso.fields import FieldIn, FieldOut
+from descanso.method_spec import MethodSpec
+from descanso.request import HttpRequest
+from descanso.response import BaseResponseTransformer, HttpResponse
 
 
 class BodyModelLoad(BaseResponseTransformer):

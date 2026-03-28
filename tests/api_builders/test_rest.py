@@ -4,7 +4,7 @@ from dirty_equals import Contains
 
 from descanso import Loader, RestBuilder
 from descanso.client import Dumper
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     Body,
     BodyModelDump,
     FormQuery,
@@ -15,7 +15,7 @@ from descanso.request_transformers import (
     Skip,
     Url,
 )
-from descanso.response_transformers import BodyModelLoad, ErrorRaiser, JsonLoad
+from descanso.transformers.response import BodyModelLoad, ErrorRaiser, JsonLoad
 from .utils import dirty
 
 
