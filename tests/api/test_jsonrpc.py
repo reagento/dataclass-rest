@@ -1,7 +1,7 @@
 from dirty_equals import IsList
 
 from descanso import JsonRPCBuilder
-from descanso.api_builders.jsonrpc import (
+from descanso.api.jsonrpc import (
     JsonRPCErrorRaiser,
     JsonRPCIdGenerator,
     JsonRPCMethod,

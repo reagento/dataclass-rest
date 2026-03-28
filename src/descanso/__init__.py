@@ -10,11 +10,11 @@ __all__ = [
     "ServerError",
 ]
 
-from .api_builders.jsonrpc import (
+from .api.jsonrpc import (
     JsonRPCBuilder,
     JsonRPCError,
     JsonRPCIdMismatchError,
 )
-from .api_builders.rest import RestBuilder
+from .api.rest import RestBuilder
 from .client import Dumper, Loader
 from .exceptions import ClientError, HttpStatusError, ServerError

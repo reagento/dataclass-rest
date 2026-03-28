@@ -1,4 +1,4 @@
-from descanso.api_builders.jsonrpc import (
+from descanso.api.jsonrpc import (
     EXTRA_JSON_RPC_METHOD,
     EXTRA_JSON_RPC_REQUEST_ID,
     PackJsonRPC,
