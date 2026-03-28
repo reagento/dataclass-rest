@@ -43,8 +43,8 @@ def make_method_pipeline(
     )
     fields_in = get_func_fields(func, is_in_class=is_in_class)
     fields_out: list[FieldOut] = []
-    for r in transformers:
-        fields_out.extend(r.transform_fields(spec, fields_in))
+    for tr in transformers:
+        fields_out.extend(tr.transform_fields(spec, fields_in))
 
     return MethodPipeline(
         name=spec.name,
@@ -54,9 +54,9 @@ def make_method_pipeline(
         fields_in=fields_in,
         fields_out=fields_out,
         request_transformers=[
-            r for r in transformers if isinstance(r, RequestTransformer)
+            tr for tr in transformers if isinstance(tr, RequestTransformer)
         ],
         response_transformers=[
-            r for r in transformers if isinstance(r, ResponseTransformer)
+            tr for tr in transformers if isinstance(tr, ResponseTransformer)
         ],
     )
