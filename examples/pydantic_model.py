@@ -1,12 +1,11 @@
 import logging
-from tkinter import N
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 from requests import Session
 
 from descanso.client import Dumper, Loader
 from descanso.http.requests import RequestsClient
-from descanso.rest_builder import RestBuilder
+from descanso import RestBuilder
 
 
 class PydanticAdapter(Loader, Dumper):

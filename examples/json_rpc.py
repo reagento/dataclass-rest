@@ -4,7 +4,7 @@ from adaptix import NameStyle, Retort, name_mapping
 from requests import Session
 
 from descanso.http.requests import RequestsClient
-from descanso.jsonrpc import JsonRPCBuilder
+from descanso import JsonRPCBuilder
 
 DEFAULT_BODY_PARAM = "body"
 

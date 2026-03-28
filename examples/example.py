@@ -7,7 +7,7 @@ from adaptix import NameStyle, Retort, name_mapping
 from requests import Session
 
 from descanso.http.requests import RequestsClient
-from descanso.request_transformers import File
+from descanso.transformers.request import File
 from descanso import RestBuilder
 
 

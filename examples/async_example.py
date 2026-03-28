@@ -9,8 +9,8 @@ from adaptix import NameStyle, Retort, name_mapping
 from aiohttp import ClientSession
 
 from descanso.http.aiohttp import AiohttpClient
-from descanso.request_transformers import File
-from descanso.rest_builder import RestBuilder
+from descanso.transformers.request import File
+from descanso import RestBuilder
 
 
 @dataclass
