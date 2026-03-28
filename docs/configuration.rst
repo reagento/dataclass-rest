@@ -24,7 +24,7 @@ To generate a query parameter dynamically use ``Query(name, template)``. Templat
 
 .. code-block:: python
 
-    from descanso.request_transformers import Query
+    from descanso.transformers.request import Query
     from descanso import RestBuilder
 
     rest = RestBuilder()
@@ -85,7 +85,7 @@ Headers can be simply set in the same way as query parameters. Just use ``Header
 
 .. code-block:: python
 
-    from descanso.request_transformers import Header
+    from descanso.transformers.request import Header
     from descanso import RestBuilder
 
     rest = RestBuilder()
@@ -148,6 +148,7 @@ You can set ``response_body_loader`` to provide a ``Loader`` instance for conver
 
     from adaptix import Retort
     from descanso import RestBuilder
+    from descanso.transformers.request import JsonLoad
 
 
     rest = RestBuilder(

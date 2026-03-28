@@ -8,8 +8,8 @@ from adaptix import Chain, Retort, dumper
 from requests import Session
 
 from descanso.http.requests import RequestsClient
-from descanso.request_transformers import Query, DelimiterQuery
-from descanso.rest_builder import RestBuilder
+from descanso.transformers.request import Query, DelimiterQuery
+from descanso import RestBuilder
 
 T = TypeVar("T")
 

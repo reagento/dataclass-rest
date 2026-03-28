@@ -1,10 +1,13 @@
 from abc import abstractmethod
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
 from kiss_headers import Headers
 
-from descanso.request import HttpRequest
+from .fields import FieldIn, FieldOut, Transformer
+from .method_spec import MethodSpec
+from .request import HttpRequest
 
 
 @dataclass
@@ -17,7 +20,7 @@ class HttpResponse:
 
 
 @runtime_checkable
-class ResponseTransformer(Protocol):
+class ResponseTransformer(Transformer, Protocol):
     @abstractmethod
     def need_response_body(self, response: HttpResponse) -> bool:
         raise NotImplementedError
@@ -25,6 +28,10 @@ class ResponseTransformer(Protocol):
     @abstractmethod
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -35,8 +42,19 @@ class BaseResponseTransformer(ResponseTransformer):
     def need_response_body(self, response: HttpResponse) -> bool:
         return False
 
+    def transform_fields(
+        self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+    ) -> Sequence[FieldOut]:
+        return []
+
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
@@ -58,9 +76,20 @@ class PipeResponseTransformer(BaseResponseTransformer):
 
     def transform_response(
         self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
         request: HttpRequest,
         response: HttpResponse,
     ) -> HttpResponse:
         for other in self.others:
-            response = other.transform_response(request, response)
+            response = other.transform_response(
+                spec,
+                fields_in,
+                fields_out,
+                data,
+                request,
+                response,
+            )
         return response

@@ -4,9 +4,8 @@ import pytest
 import pytest_asyncio
 from httpx import AsyncClient, Client
 
-from descanso import RestBuilder
+from descanso import JsonRPCBuilder, JsonRPCError, RestBuilder
 from descanso.http.httpx import AsyncHttpxClient, HttpxClient
-from descanso.jsonrpc import JsonRPCBuilder, JsonRPCError
 from .data import req_resp
 
 

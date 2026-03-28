@@ -2,6 +2,7 @@ import inspect
 from collections.abc import Callable, Sequence
 from typing import Any, get_type_hints
 
+from .method_pipeline import MethodPipeline
 from .method_spec import MethodSpec
 from .request import FieldIn, FieldOut, RequestTransformer
 from .response import ResponseTransformer
@@ -28,29 +29,34 @@ def get_result_type(func: Callable) -> Any:
     return hints.get("return", Any)
 
 
-def make_method_spec(
+def make_method_pipeline(
     func: Callable,
     *,
     transformers: Sequence[RequestTransformer | ResponseTransformer],
     is_in_class: bool,
-):
-    fields_in = get_func_fields(func, is_in_class=is_in_class)
-    fields_out: list[FieldOut] = []
-    request_transformers = [
-        r for r in transformers if isinstance(r, RequestTransformer)
-    ]
-    for r in request_transformers:
-        fields_out.extend(r.transform_fields(fields_in))
-
-    return MethodSpec(
+) -> MethodPipeline:
+    spec = MethodSpec(
         func=func,
         name=func.__name__,
         doc=func.__doc__,
+        result_type=get_result_type(func),
+    )
+    fields_in = get_func_fields(func, is_in_class=is_in_class)
+    fields_out: list[FieldOut] = []
+    for tr in transformers:
+        fields_out.extend(tr.transform_fields(spec, fields_in))
+
+    return MethodPipeline(
+        name=spec.name,
+        doc=spec.doc,
+        result_type=spec.result_type,
+        func=spec.func,
         fields_in=fields_in,
         fields_out=fields_out,
-        result_type=get_result_type(func),
-        request_transformers=request_transformers,
+        request_transformers=[
+            tr for tr in transformers if isinstance(tr, RequestTransformer)
+        ],
         response_transformers=[
-            r for r in transformers if isinstance(r, ResponseTransformer)
+            tr for tr in transformers if isinstance(tr, ResponseTransformer)
         ],
     )

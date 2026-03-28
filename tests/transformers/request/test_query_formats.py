@@ -1,13 +1,13 @@
 import pytest
 
 from descanso.request import FieldIn, HttpRequest
-from descanso.request_transformers import (
+from descanso.transformers.request import (
     DeepObjectQuery,
     DelimiterQuery,
     FormQuery,
     PhpStyleQuery,
 )
-from tests.request_transformers.utills import consumed_fields
+from .utils import consumed_fields
 
 
 @pytest.fixture
@@ -24,16 +24,22 @@ def fields_in():
         (DelimiterQuery("|"), [("x", "1|2")]),
     ],
 )
-def test_list(transformer, expected_params, fields_in):
+def test_list(spec, transformer, expected_params, fields_in):
     assert str(transformer)
-    assert transformer.transform_fields(fields_in) == []
+    assert transformer.transform_fields(spec, fields_in) == []
     assert consumed_fields(fields_in, transformer) == []
     request = HttpRequest(
         query_params=[
             ("x", [1, 2]),
         ],
     )
-    request = transformer.transform_request(request, fields_in, [], {"x": 1})
+    request = transformer.transform_request(
+        spec,
+        request,
+        fields_in,
+        [],
+        {"x": 1},
+    )
     assert request == HttpRequest(query_params=expected_params)
 
 
@@ -46,23 +52,29 @@ def test_list(transformer, expected_params, fields_in):
         (DelimiterQuery("|"), [("x", "a|1|b|2")]),
     ],
 )
-def test_dict(transformer, expected_params, fields_in):
+def test_dict(spec, transformer, expected_params, fields_in):
     assert str(transformer)
-    assert transformer.transform_fields(fields_in) == []
+    assert transformer.transform_fields(spec, fields_in) == []
     assert consumed_fields(fields_in, transformer) == []
     request = HttpRequest(
         query_params=[
             ("x", {"a": 1, "b": 2, "c": None}),
         ],
     )
-    request = transformer.transform_request(request, fields_in, [], {"x": 1})
+    request = transformer.transform_request(
+        spec,
+        request,
+        fields_in,
+        [],
+        {"x": 1},
+    )
     assert request == HttpRequest(query_params=expected_params)
 
 
-def test_nested_php_style(fields_in):
+def test_nested_php_style(spec, fields_in):
     transformer = PhpStyleQuery()
     assert str(transformer)
-    assert transformer.transform_fields(fields_in) == []
+    assert transformer.transform_fields(spec, fields_in) == []
     assert consumed_fields(fields_in, transformer) == []
     request = HttpRequest(
         query_params=[
@@ -86,5 +98,11 @@ def test_nested_php_style(fields_in):
         ("x[b][1][a]", "4"),
         ("x[b][1][b]", "5"),
     ]
-    request = transformer.transform_request(request, fields_in, [], {"x": 1})
+    request = transformer.transform_request(
+        spec,
+        request,
+        fields_in,
+        [],
+        {"x": 1},
+    )
     assert request == HttpRequest(query_params=expected_params)

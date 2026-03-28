@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import (
     IO,
     Any,
@@ -12,6 +11,9 @@ from typing import (
 )
 
 from kiss_headers import Headers
+
+from .fields import FieldIn, FieldOut, Transformer
+from .method_spec import MethodSpec
 
 T = TypeVar("T")
 KeyValue: TypeAlias = tuple[str, T]
@@ -36,35 +38,12 @@ class HttpRequest:
     method: str = "GET"
 
 
-class FieldDestination(Enum):
-    URL = "url"
-    HEADER = "headers"
-    BODY = "body"
-    FILE = "files"
-    QUERY = "query_params"
-    EXTRA = "extras"
-    UNDEFINED = "undefined"
-
-
-@dataclass
-class FieldIn:
-    name: str
-    type_hint: Any
-    consumed_by: list["RequestTransformer"] = field(default_factory=list)
-
-
-@dataclass
-class FieldOut:
-    name: str | None
-    dest: FieldDestination
-    type_hint: Any
-
-
 @runtime_checkable
-class RequestTransformer(Protocol):
+class RequestTransformer(Transformer, Protocol):
     @abstractmethod
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         raise NotImplementedError
@@ -72,6 +51,7 @@ class RequestTransformer(Protocol):
     @abstractmethod
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -83,12 +63,14 @@ class RequestTransformer(Protocol):
 class BaseRequestTransformer(RequestTransformer):
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         return []
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -109,15 +91,17 @@ class PipeRequestTransformer(BaseRequestTransformer):
 
     def transform_fields(
         self,
+        spec: MethodSpec,
         fields_in: Sequence[FieldIn],
     ) -> Sequence[FieldOut]:
         res: list[FieldOut] = []
         for other in self.others:
-            res.extend(other.transform_fields(fields_in))
+            res.extend(other.transform_fields(spec, fields_in))
         return res
 
     def transform_request(
         self,
+        spec: MethodSpec,
         request: HttpRequest,
         fields_in: Sequence[FieldIn],
         fields_out: Sequence[FieldOut],
@@ -125,6 +109,7 @@ class PipeRequestTransformer(BaseRequestTransformer):
     ) -> HttpRequest:
         for other in self.others:
             request = other.transform_request(
+                spec,
                 request,
                 fields_in,
                 fields_out,

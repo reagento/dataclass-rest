@@ -14,7 +14,7 @@ The format string is evaluated when the request is built, not when the client in
 .. code-block:: python
 
     from descanso import SyncClient
-    from descanso.request_transformers import Header
+    from descanso.transformers.request import Header
 
     class ApiClient(SyncClient):
         def __init__(self, base_url: str, session: Session, token: str):
@@ -54,7 +54,7 @@ override the ``send_request`` or ``asend_request`` method and implement your aut
 Basic authentication
 ----------------------------
 
-For HTTP Basic authentication, use the :class:`~descanso.request_transformers.BasicAuth` transformer
+For HTTP Basic authentication, use the :class:`~descanso.transformers.request.BasicAuth` transformer
 to automatically encode credentials and add the ``Authorization`` header.
 
 Use the ``from_credentials`` classmethod for constant username and password values.
@@ -63,7 +63,7 @@ For dynamic credentials, provide format string templates or callable templates t
 .. code-block:: python
 
     from descanso import SyncClient, RestBuilder
-    from descanso.request_transformers import BasicAuth
+    from descanso.transformers.request import BasicAuth
 
     rest = RestBuilder()
 

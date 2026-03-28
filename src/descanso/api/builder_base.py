@@ -8,12 +8,10 @@ from typing import (
     overload,
 )
 
-from descanso.method_descriptor import MethodBinder
 from descanso.request import RequestTransformer
-from descanso.request_transformers import (
-    Url,
-)
 from descanso.response import ResponseTransformer
+from descanso.transformers.request import Url
+from .method_descriptor import MethodBinder
 
 DEFAULT_BODY_PARAM = "body"
 
