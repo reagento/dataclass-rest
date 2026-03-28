@@ -12,7 +12,6 @@ from uuid import uuid4
 
 from descanso.client import Dumper, Loader
 from descanso.fields import FieldDestination, FieldIn, FieldOut
-from descanso.method_descriptor import MethodBinder
 from descanso.method_pipeline import MethodPipeline
 from descanso.method_spec import MethodSpec
 from descanso.request import (
@@ -44,6 +43,7 @@ from .builder_base import (
     UrlSrc,
     url_transformer,
 )
+from .method_descriptor import MethodBinder
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")

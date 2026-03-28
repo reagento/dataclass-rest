@@ -10,7 +10,6 @@ from typing import (
 
 from descanso.client import Dumper, Loader
 from descanso.fields import FieldDestination, FieldOut
-from descanso.method_descriptor import MethodBinder
 from descanso.method_pipeline import MethodPipeline
 from descanso.request import RequestTransformer
 from descanso.response import HttpResponse, ResponseTransformer
@@ -38,6 +37,7 @@ from .builder_base import (
     UrlSrc,
     url_transformer,
 )
+from .method_descriptor import MethodBinder
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")

@@ -3,16 +3,16 @@ from typing import (
     Any,
 )
 
-from .client import (
+from descanso.client import (
     AsyncClient,
     AsyncResponseWrapper,
     BaseClient,
     SyncClient,
     SyncResponseWrapper,
 )
-from .method_pipeline import MethodPipeline
-from .request import HttpRequest
-from .response import HttpResponse
+from descanso.method_pipeline import MethodPipeline
+from descanso.request import HttpRequest
+from descanso.response import HttpResponse
 
 
 def make_request(
