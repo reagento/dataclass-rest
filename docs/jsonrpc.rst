@@ -10,7 +10,7 @@ The logic is similar to REST-like case but you need to create
 .. code-block:: python
 
     from adaptix import Retort
-    from descanso.request_transformers import Query
+    from descanso.transformers.request import Query
     from descanso import JsonRPCBuilder
 
     jsonrpc = JsonRPCBuilder(

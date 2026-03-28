@@ -111,7 +111,7 @@ Basic usage
         def get_all(self, body: str) -> None: ...
 
     # descanso
-    from descanso.request_transformers import Body
+    from descanso.transformers.request import Body
 
     class RealClient(RequestsClient):
         @post("/", request_body_post_dump=None)
