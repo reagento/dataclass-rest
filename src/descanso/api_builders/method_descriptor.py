@@ -8,9 +8,9 @@ from typing import (
     overload,
 )
 
-from .bound_method import BoundAsyncMethod, BoundSyncMethod
 from descanso.client import AsyncClient, SyncClient
 from descanso.method_spec import MethodSpec
+from .bound_method import BoundAsyncMethod, BoundSyncMethod
 
 _MethodResultT = TypeVar("_MethodResultT")
 _MethodParamSpec = ParamSpec("_MethodParamSpec")
