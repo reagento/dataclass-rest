@@ -47,7 +47,7 @@ class DestTransformer(BaseRequestTransformer):
         name_out: str,
         template: DataTemplate,
         dest: FieldDestination,
-        type_hint: Any = None,
+        type_hint: Any = ...,
     ) -> None:
         self.name_out = name_out
         self.dest = dest
@@ -103,7 +103,7 @@ class DestTransformer(BaseRequestTransformer):
         type_hint: Any,
         template: DataTemplate,
     ) -> Any:
-        if type_hint is not None:
+        if type_hint is not ...:
             return type_hint
         if isinstance(template, str):
             return str
@@ -126,7 +126,7 @@ class Header(DestTransformer):
         self,
         header: str,
         template: DataTemplate = None,
-        type_hint: Any = None,
+        type_hint: Any = ...,
     ):
         super().__init__(
             name_out=header,
@@ -224,7 +224,7 @@ class Extra(DestTransformer):
         self,
         header: str,
         template: DataTemplate = None,
-        type_hint: Any = None,
+        type_hint: Any = ...,
     ):
         super().__init__(
             name_out=header,
@@ -239,7 +239,7 @@ class Query(DestTransformer):
         self,
         name_out: str,
         template: DataTemplate = None,
-        type_hint: Any = None,
+        type_hint: Any = ...,
     ):
         super().__init__(
             name_out=name_out,
