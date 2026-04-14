@@ -47,23 +47,22 @@ class DestTransformer(BaseRequestTransformer):
         name_out: str,
         template: DataTemplate,
         dest: FieldDestination,
+        type_hint: Any = ...,
     ) -> None:
         self.name_out = name_out
         self.dest = dest
         self.original_template = template
-        self.type_hint: Any = Any
+        self.type_hint = self._resolve_type_hint(type_hint, template)
+
         if template is None:
             self.template = lambda **kwargs: kwargs[name_out]
             self.args = [name_out]
-            self.type_hint = Any
         elif isinstance(template, str):
             self.template = template.format
             self.args = get_params_from_string(template)
-            self.type_hint = str
         else:
             self.template = template
             self.args = get_params_from_callable(template)
-            self.type_hint = get_type_hints(template).get("return", Any)
 
     def transform_fields(
         self,
@@ -99,6 +98,19 @@ class DestTransformer(BaseRequestTransformer):
         request_field.append((self.name_out, value))
         return request
 
+    def _resolve_type_hint(
+        self,
+        type_hint: Any,
+        template: DataTemplate,
+    ) -> Any:
+        if type_hint is not ...:
+            return type_hint
+        if isinstance(template, str):
+            return str
+        if isinstance(template, Callable):
+            return get_type_hints(template).get("return", Any)
+        return Any
+
     def __repr__(self):
         return (
             f"{self.__class__.__name__}("
@@ -110,11 +122,17 @@ class DestTransformer(BaseRequestTransformer):
 
 
 class Header(DestTransformer):
-    def __init__(self, header: str, template: DataTemplate = None):
+    def __init__(
+        self,
+        header: str,
+        template: DataTemplate = None,
+        type_hint: Any = ...,
+    ):
         super().__init__(
             name_out=header,
             template=template,
             dest=FieldDestination.HEADER,
+            type_hint=type_hint,
         )
 
     def transform_request(
@@ -202,20 +220,32 @@ class BasicAuth(BaseRequestTransformer):
 
 
 class Extra(DestTransformer):
-    def __init__(self, header: str, template: DataTemplate = None):
+    def __init__(
+        self,
+        header: str,
+        template: DataTemplate = None,
+        type_hint: Any = ...,
+    ):
         super().__init__(
             name_out=header,
             template=template,
             dest=FieldDestination.EXTRA,
+            type_hint=type_hint,
         )
 
 
 class Query(DestTransformer):
-    def __init__(self, name_out: str, template: DataTemplate = None):
+    def __init__(
+        self,
+        name_out: str,
+        template: DataTemplate = None,
+        type_hint: Any = ...,
+    ):
         super().__init__(
             name_out=name_out,
             template=template,
             dest=FieldDestination.QUERY,
+            type_hint=type_hint,
         )
 
 
