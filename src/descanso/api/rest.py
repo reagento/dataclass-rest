@@ -21,6 +21,7 @@ from descanso.transformers.request import (
     JsonDump,
     Method,
     Query,
+    QueryMask,
     QueryModelDump,
 )
 from descanso.transformers.response import (
@@ -50,6 +51,7 @@ class BuilderParams(TypedDict, total=False):
     request_body_dumper: Dumper | None
     request_body_post_dump: RequestTransformer | None
     query_param_post_dump: RequestTransformer | None
+    default_query: QueryMask | None
 
     response_body_loader: Loader | None
     response_body_pre_load: ResponseTransformer | None
@@ -179,10 +181,13 @@ class RestBuilder(Decorator):
                 self._add_request_transformer(pipeline, post_dump)
 
     def _add_default_query_transformers(self, pipeline: MethodPipeline):
-        for field in pipeline.fields_in:
-            if field.consumed_by:
-                continue
-            self._add_request_transformer(pipeline, Query(field.name))
+        if query_mask := self.params.get("default_query"):
+            self._add_request_transformer(pipeline, query_mask)
+        else:
+            for field in pipeline.fields_in:
+                if field.consumed_by:
+                    continue
+                self._add_request_transformer(pipeline, Query(field.name))
 
         if dumper := self.params.get("query_param_dumper"):
             self._add_request_transformer(pipeline, QueryModelDump(dumper))
@@ -211,11 +216,13 @@ class RestBuilder(Decorator):
 
         loader = self.params.get("response_body_loader")
         if pipeline.result_type is HttpResponse:
-            pipeline.response_transformers.append(KeepResponse(need_body=False))
+            pipeline.response_transformers.append(
+                KeepResponse(need_body=False),
+            )
         elif (
-                loader
-                and pipeline.result_type is not Any
-                and pipeline.result_type is not object
+            loader
+            and pipeline.result_type is not Any
+            and pipeline.result_type is not object
         ):
             pipeline.response_transformers.append(
                 BodyModelLoad(pipeline.result_type, loader=loader),
