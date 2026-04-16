@@ -1,5 +1,6 @@
 import itertools
 import json
+import re
 import string
 from collections.abc import Callable, Iterator, Sequence
 from inspect import getfullargspec
@@ -247,6 +248,61 @@ class Query(DestTransformer):
             dest=FieldDestination.QUERY,
             type_hint=type_hint,
         )
+
+
+class QueryMask(BaseRequestTransformer):
+    def __init__(
+        self,
+        regex: str | None = None,
+        name_style: Callable[[str], str] | None = None,
+    ) -> None:
+        self.regex = regex
+        self.pattern = re.compile(regex) if regex else None
+        self.name_style = name_style or (lambda name: name)
+
+    def transform_fields(
+        self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+    ) -> Sequence[FieldOut]:
+        fields_out = []
+        for field in fields_in:
+            if field.consumed_by:
+                continue
+            if self.pattern and not self.pattern.fullmatch(field.name):
+                continue
+
+            field.consumed_by.append(self)
+            fields_out.append(
+                FieldOut(
+                    name=self.name_style(field.name),
+                    dest=FieldDestination.QUERY,
+                    type_hint=field.type_hint,
+                ),
+            )
+        return fields_out
+
+    def transform_request(
+        self,
+        spec: MethodSpec,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        for field in fields_in:
+            if self not in field.consumed_by:
+                continue
+            if field.name not in data:
+                continue
+
+            new_name = self.name_style(field.name)
+            value = data[field.name]
+            request.query_params.append((new_name, value))
+        return request
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(re={self.regex!r}, name_style={self.name_style!r})"
 
 
 class Url(BaseRequestTransformer):
