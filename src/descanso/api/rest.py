@@ -183,11 +183,10 @@ class RestBuilder(Decorator):
     def _add_default_query_transformers(self, pipeline: MethodPipeline):
         if query_mask := self.params.get("default_query"):
             self._add_request_transformer(pipeline, query_mask)
-        else:
-            for field in pipeline.fields_in:
-                if field.consumed_by:
-                    continue
-                self._add_request_transformer(pipeline, Query(field.name))
+        for field in pipeline.fields_in:
+            if field.consumed_by:
+                continue
+            self._add_request_transformer(pipeline, Query(field.name))
 
         if dumper := self.params.get("query_param_dumper"):
             self._add_request_transformer(pipeline, QueryModelDump(dumper))
