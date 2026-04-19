@@ -4,6 +4,7 @@ from dirty_equals import Contains
 
 from descanso import Loader, RestBuilder
 from descanso.client import Dumper
+from descanso.fields import FieldDestination, FieldOut
 from descanso.transformers.request import (
     Body,
     BodyModelDump,
@@ -11,6 +12,7 @@ from descanso.transformers.request import (
     JsonDump,
     Method,
     Query,
+    QueryMask,
     QueryModelDump,
     Skip,
     Url,
@@ -170,4 +172,81 @@ def test_override_params():
     assert Api.do_get.spec.response_transformers == [
         error_raiser,
         response_body_pre_load2,
+    ]
+
+
+def test_query_mask():
+    def to_upper(s: str) -> str:
+        return s.upper()
+
+    query_mask = QueryMask(to_upper, "^u.*$")
+    rest = RestBuilder(default_query=query_mask)
+
+    class Api:
+        @rest.get("/")
+        def do_get(self, user_id: int, phone_number: str) -> Model: ...
+
+    assert Api.do_get.spec.request_transformers == [
+        dirty[Url](original_template="/"),
+        dirty[Method](method="GET"),
+        dirty[QueryMask](regex="^u.*$", name_style=to_upper),
+        dirty[Query](name_out="phone_number", original_template=None),
+        dirty[FormQuery](),
+    ]
+    assert Api.do_get.spec.fields_out == [
+        FieldOut(None, FieldDestination.URL, str),
+        FieldOut("USER_ID", FieldDestination.QUERY, int),
+        FieldOut("phone_number", FieldDestination.QUERY, str),
+    ]
+
+
+def test_multiply_query_masks():
+    def to_upper(s: str) -> str:
+        return s.upper()
+
+    query_mask = QueryMask(to_upper, "^u.*$")
+    rest = RestBuilder(default_query=query_mask)
+
+    class Api:
+        @rest.get("/", QueryMask(to_upper, "^p.*$"))
+        def do_get(self, user_id: int, phone_number: str) -> Model: ...
+
+    assert Api.do_get.spec.request_transformers == [
+        dirty[Url](original_template="/"),
+        dirty[Method](method="GET"),
+        dirty[QueryMask](regex="^p.*$", name_style=to_upper),
+        dirty[QueryMask](regex="^u.*$", name_style=to_upper),
+        dirty[FormQuery](),
+    ]
+    assert Api.do_get.spec.fields_out == [
+        FieldOut(None, FieldDestination.URL, str),
+        FieldOut("PHONE_NUMBER", FieldDestination.QUERY, str),
+        FieldOut("USER_ID", FieldDestination.QUERY, int),
+    ]
+
+
+def test_query_mask_override():
+    def to_upper(s: str) -> str:
+        return s.upper()
+
+    def to_title(s: str) -> str:
+        return s.title()
+
+    query_mask = QueryMask(to_upper, "^a.*$")
+    rest = RestBuilder(default_query=query_mask)
+
+    class Api:
+        @rest.get("/", QueryMask(to_title, "^a.*$"))
+        def do_get(self, abc: str) -> Model: ...
+
+    assert Api.do_get.spec.request_transformers == [
+        dirty[Url](original_template="/"),
+        dirty[Method](method="GET"),
+        dirty[QueryMask](regex="^a.*$", name_style=to_title),
+        dirty[QueryMask](regex="^a.*$", name_style=to_upper),
+        dirty[FormQuery](),
+    ]
+    assert Api.do_get.spec.fields_out == [
+        FieldOut(None, FieldDestination.URL, str),
+        FieldOut("Abc", FieldDestination.QUERY, str),
     ]
