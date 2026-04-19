@@ -253,12 +253,12 @@ class Query(DestTransformer):
 class QueryMask(BaseRequestTransformer):
     def __init__(
         self,
+        name_style: Callable[[str], str],
         regex: str | None = None,
-        name_style: Callable[[str], str] | None = None,
     ) -> None:
         self.regex = regex
         self.pattern = re.compile(regex) if regex else None
-        self.name_style = name_style or (lambda name: name)
+        self.name_style = name_style
 
     def transform_fields(
         self,

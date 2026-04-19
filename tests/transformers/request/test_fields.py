@@ -232,7 +232,7 @@ def snake_to_camel(u: str) -> str:
     ("transformer", "consumed", "params", "out"),
     [
         (
-            QueryMask("user_id|first_name", name_style=snake_to_camel),
+            QueryMask(snake_to_camel, "user_id|first_name"),
             ["user_id", "first_name"],
             [("userId", 123), ("firstName", "John")],
             [
@@ -241,7 +241,7 @@ def snake_to_camel(u: str) -> str:
             ],
         ),
         (
-            QueryMask(name_style=lambda n: n.upper()),
+            QueryMask(lambda n: n.upper()),
             ["i", "s", "a", "user_id", "first_name"],
             [
                 ("I", 1),
