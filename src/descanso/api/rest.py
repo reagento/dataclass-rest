@@ -21,7 +21,6 @@ from descanso.transformers.request import (
     JsonDump,
     Method,
     Query,
-    QueryMask,
     QueryModelDump,
 )
 from descanso.transformers.response import (
@@ -51,7 +50,6 @@ class BuilderParams(TypedDict, total=False):
     request_body_dumper: Dumper | None
     request_body_post_dump: RequestTransformer | None
     query_param_post_dump: RequestTransformer | None
-    default_query: QueryMask | None
 
     response_body_loader: Loader | None
     response_body_pre_load: ResponseTransformer | None
@@ -181,8 +179,6 @@ class RestBuilder(Decorator):
                 self._add_request_transformer(pipeline, post_dump)
 
     def _add_default_query_transformers(self, pipeline: MethodPipeline):
-        if query_mask := self.params.get("default_query"):
-            self._add_request_transformer(pipeline, query_mask)
         for field in pipeline.fields_in:
             if field.consumed_by:
                 continue
