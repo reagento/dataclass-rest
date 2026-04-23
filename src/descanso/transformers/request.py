@@ -253,12 +253,13 @@ class Query(DestTransformer):
 class QueryMask(BaseRequestTransformer):
     def __init__(
         self,
-        name_style: Callable[[str], str],
+        name_style: Callable[[str], str] | None = None,
         regex: str | None = None,
     ) -> None:
         self.regex = regex
         self.pattern = re.compile(regex) if regex else None
         self.name_style = name_style
+        self._transform_name = self.name_style or (lambda n: n)
 
     def transform_fields(
         self,
@@ -275,7 +276,7 @@ class QueryMask(BaseRequestTransformer):
             field.consumed_by.append(self)
             fields_out.append(
                 FieldOut(
-                    name=self.name_style(field.name),
+                    name=self._transform_name(field.name),
                     dest=FieldDestination.QUERY,
                     type_hint=field.type_hint,
                 ),
@@ -296,13 +297,15 @@ class QueryMask(BaseRequestTransformer):
             if field.name not in data:
                 continue
 
-            new_name = self.name_style(field.name)
+            new_name = self._transform_name(field.name)
             value = data[field.name]
             request.query_params.append((new_name, value))
         return request
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(re={self.regex!r}, name_style={self.name_style!r})"
+        return (
+            f"{self.__class__.__name__}({self.regex!r}, {self.name_style!r})"
+        )
 
 
 class Url(BaseRequestTransformer):
