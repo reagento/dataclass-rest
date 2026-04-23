@@ -261,7 +261,13 @@ def snake_to_camel(u: str) -> str:
     ],
 )
 def test_query_mask(
-    spec, transformer, consumed, params, out, fields_in, data_in
+    spec,
+    transformer,
+    consumed,
+    params,
+    out,
+    fields_in,
+    data_in,
 ):
     fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
