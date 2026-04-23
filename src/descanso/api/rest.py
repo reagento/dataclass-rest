@@ -20,7 +20,7 @@ from descanso.transformers.request import (
     FormQuery,
     JsonDump,
     Method,
-    Query,
+    QueryMask,
     QueryModelDump,
 )
 from descanso.transformers.response import (
@@ -179,10 +179,7 @@ class RestBuilder(Decorator):
                 self._add_request_transformer(pipeline, post_dump)
 
     def _add_default_query_transformers(self, pipeline: MethodPipeline):
-        for field in pipeline.fields_in:
-            if field.consumed_by:
-                continue
-            self._add_request_transformer(pipeline, Query(field.name))
+        self._add_request_transformer(pipeline, QueryMask())
 
         if dumper := self.params.get("query_param_dumper"):
             self._add_request_transformer(pipeline, QueryModelDump(dumper))
