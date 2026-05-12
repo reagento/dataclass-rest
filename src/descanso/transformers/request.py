@@ -1,5 +1,6 @@
 import itertools
 import json
+import re
 import string
 from collections.abc import Callable, Iterator, Sequence
 from inspect import getfullargspec
@@ -246,6 +247,64 @@ class Query(DestTransformer):
             template=template,
             dest=FieldDestination.QUERY,
             type_hint=type_hint,
+        )
+
+
+class QueryMask(BaseRequestTransformer):
+    def __init__(
+        self,
+        name_style: Callable[[str], str] | None = None,
+        regex: str | None = None,
+    ) -> None:
+        self.regex = regex
+        self.pattern = re.compile(regex) if regex else None
+        self.name_style = name_style
+        self._transform_name = self.name_style or (lambda n: n)
+
+    def transform_fields(
+        self,
+        spec: MethodSpec,
+        fields_in: Sequence[FieldIn],
+    ) -> Sequence[FieldOut]:
+        fields_out = []
+        for field in fields_in:
+            if field.consumed_by:
+                continue
+            if self.pattern and not self.pattern.fullmatch(field.name):
+                continue
+
+            field.consumed_by.append(self)
+            fields_out.append(
+                FieldOut(
+                    name=self._transform_name(field.name),
+                    dest=FieldDestination.QUERY,
+                    type_hint=field.type_hint,
+                ),
+            )
+        return fields_out
+
+    def transform_request(
+        self,
+        spec: MethodSpec,
+        request: HttpRequest,
+        fields_in: Sequence[FieldIn],
+        fields_out: Sequence[FieldOut],
+        data: dict[str, Any],
+    ) -> HttpRequest:
+        for field in fields_in:
+            if self not in field.consumed_by:
+                continue
+            if field.name not in data:
+                continue
+
+            new_name = self._transform_name(field.name)
+            value = data[field.name]
+            request.query_params.append((new_name, value))
+        return request
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}({self.regex!r}, {self.name_style!r})"
         )
 
 

@@ -20,6 +20,7 @@ from descanso.transformers.request import (
     Header,
     Method,
     Query,
+    QueryMask,
     Skip,
     Url,
 )
@@ -32,12 +33,24 @@ def query_int(i: int) -> int:
 
 @pytest.fixture
 def fields_in():
-    return [FieldIn("i", int), FieldIn("s", str), FieldIn("a", Any)]
+    return [
+        FieldIn("i", int),
+        FieldIn("s", str),
+        FieldIn("a", Any),
+        FieldIn("user_id", int),
+        FieldIn("first_name", str),
+    ]
 
 
 @pytest.fixture
 def data_in():
-    return {"i": 1, "s": "hello", "a": "any"}
+    return {
+        "i": 1,
+        "s": "hello",
+        "a": "any",
+        "user_id": 123,
+        "first_name": "John",
+    }
 
 
 @pytest.mark.parametrize(
@@ -196,6 +209,66 @@ def test_header(spec, transformer, consumed, headers, out, fields_in, data_in):
     ],
 )
 def test_query(spec, transformer, consumed, params, out, fields_in, data_in):
+    fields_out = transformer.transform_fields(spec, fields_in)
+    assert str(transformer)
+    assert consumed_fields(fields_in, transformer) == consumed
+    assert fields_out == out
+    req = transformer.transform_request(
+        spec,
+        HttpRequest(),
+        fields_in,
+        fields_out,
+        data_in,
+    )
+    assert req == HttpRequest(query_params=params)
+
+
+def snake_to_camel(u: str) -> str:
+    s = u.split("_")
+    return s[0] + "".join(x.title() for x in s[1:])
+
+
+@pytest.mark.parametrize(
+    ("transformer", "consumed", "params", "out"),
+    [
+        (
+            QueryMask(snake_to_camel, "user_id|first_name"),
+            ["user_id", "first_name"],
+            [("userId", 123), ("firstName", "John")],
+            [
+                FieldOut("userId", FieldDestination.QUERY, int),
+                FieldOut("firstName", FieldDestination.QUERY, str),
+            ],
+        ),
+        (
+            QueryMask(lambda n: n.upper()),
+            ["i", "s", "a", "user_id", "first_name"],
+            [
+                ("I", 1),
+                ("S", "hello"),
+                ("A", "any"),
+                ("USER_ID", 123),
+                ("FIRST_NAME", "John"),
+            ],
+            [
+                FieldOut("I", FieldDestination.QUERY, int),
+                FieldOut("S", FieldDestination.QUERY, str),
+                FieldOut("A", FieldDestination.QUERY, Any),
+                FieldOut("USER_ID", FieldDestination.QUERY, int),
+                FieldOut("FIRST_NAME", FieldDestination.QUERY, str),
+            ],
+        ),
+    ],
+)
+def test_query_mask(
+    spec,
+    transformer,
+    consumed,
+    params,
+    out,
+    fields_in,
+    data_in,
+):
     fields_out = transformer.transform_fields(spec, fields_in)
     assert str(transformer)
     assert consumed_fields(fields_in, transformer) == consumed
